@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
@@ -8,7 +9,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferStrategy;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.JApplet;
 
@@ -29,13 +29,14 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	
 	// Tile types
 	static final byte _ = 0;
-	static final byte O = 1;
-	static final byte W = 2; static final int SOLIDS = 2;
-	static final byte D = 3;
+	static final byte O = 1; 
+	static final byte I = 2; static final int TRANSPARENTS = 2; static final int SOLIDS = 2;
+	static final byte W = 3; 
+	static final byte D = 4;
 	
 	// b stats
-	static final double B_RUN_SPEED = 0.1;
-	static final double B_WALK_SPEED = 0.03;
+	static final double B_RUN_SPEED = 0.9;
+	static final double B_WALK_SPEED = 0.025;
 	static final int B_COOLDOWN = 20;
 	int b_cooldown = 0;
 	int b_fatigue = 0;
@@ -63,7 +64,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	// map
 	static byte[] T_TO_HP = {
 		0, // _
-		10, // O
+		10,// O
+		12,// I
 		20,// W
 		10,// D
 	};
@@ -71,14 +73,14 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	byte[][] t_type = {
 		{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
 		{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, W, W, W, W, W, W, _, _, _, _, _, _, _, _, _},
+		{_, _, _, W, I, W, I, W, W, W, _, _, _, _, _, _, _, _, _},
 		{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-		{_, _, _, O, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
+		{_, _, _, O, _, _, _, _, _, I, _, _, _, _, _, _, _, _, _},
 		{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
 		{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, W, W, W, O, W, W, W, _, _, _, _, _, _, _, _},
+		{_, _, _, W, I, W, W, O, W, W, W, _, _, _, _, _, _, _, _},
 		{_, _, _, _, _, _, W, _, _, _, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, W, _, _, _, W, _, _, _, _, _, _, _, _},
+		{_, _, _, _, _, _, I, _, _, _, I, _, _, _, _, _, _, _, _},
 		{_, _, _, _, _, _, W, W, D, W, W, _, _, _, _, _, _, _, _},
 		{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
 		{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
@@ -284,6 +286,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						case W: c = Color.DARK_GRAY;  break;
 						case O: c = Color.GRAY;       break;
 						case D: c = new Color(127, 127, 0); break;
+						case I: c = new Color(127, 127, 255); break;
 					}
 					g.setColor(c);
 					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -299,6 +302,22 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			if (bang_tick-- > 0) {
 				g.fillOval(bang_x * TILE_SIZE, bang_y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 			}
+			g.setColor(Color.BLACK);
+			g.setStroke(new BasicStroke(10));
+			for (double d = 0; d < Math.PI * 2; d += Math.PI / 1000) {
+				double y = b_y;
+				double x = b_x;
+				while (true) {
+					if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
+					if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
+					y += Math.sin(d) * 0.1;
+					x += Math.cos(d) * 0.1;
+				}
+				y += Math.sin(d) * 0.3;
+				x += Math.cos(d) * 0.3;
+				g.drawLine((int) (x * TILE_SIZE), (int) (y * TILE_SIZE), (int) (b_x * TILE_SIZE + Math.cos(d) * 1000), (int) (b_y * TILE_SIZE + Math.sin(d) * 1000));
+			}
+			g.setColor(Color.YELLOW);
 			g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 			if (b_fatigue > 400) {
 				g.setColor(Color.ORANGE);
@@ -309,7 +328,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			g.setFont(new Font("Verdana", Font.PLAIN, 20));
 			g.drawString(msg, 40, 300);
 			strategy.show();
-			try { Thread.sleep(25); } catch (Exception e) {}
+			try { Thread.sleep(10); } catch (Exception e) {}
 			if (game_over) {
 				return;
 			}
