@@ -35,7 +35,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final byte D = 4;
 	
 	// b stats
-	static final double B_RUN_SPEED = 0.9;
+	static final double B_RUN_SPEED = 0.09;
 	static final double B_WALK_SPEED = 0.025;
 	static final int B_COOLDOWN = 20;
 	int b_cooldown = 0;
