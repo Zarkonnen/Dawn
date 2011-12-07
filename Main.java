@@ -22,8 +22,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final int T_H = 15;
 	static final double P_R = 0.3;
 	
-	static final int[] X_DIRS = { 0, 0, -1, 1 , -1, 1, 1,-1};
-	static final int[] Y_DIRS = { -1, 1, 0, 0 , -1,-1, 1, 1};
+	static final int[] X_DIRS = { -1, 0, 1, 0 , -1, 1, 1,-1};
+	static final int[] Y_DIRS = {  0,-1, 0, 1 , -1,-1, 1, 1};
 	
 	String msg = "";
 	
@@ -112,40 +112,22 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		while (true) {
 			b_cooldown--;
 			v_cooldown--;
+			// b movement
 			double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
 			boolean mv = false;
-			// Input
-			if (key[KeyEvent.VK_UP]) {
-				b_y -= sp;
-				// Borders
-				b_y = b_y < P_R ? P_R : b_y;
-				// Solid things
-				b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y + sp : b_y;
-				mv = true;
-			}
-			if (key[KeyEvent.VK_DOWN]) {
-				b_y += sp;
-				// Borders
-				b_y = b_y > (T_H - P_R) ? (T_H - P_R) : b_y;
-				// Solid things
-				b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - sp : b_y;
-				mv = true;
-			}
-			if (key[KeyEvent.VK_LEFT]) {
-				b_x -= sp;
-				// Borders
-				b_x = b_x < P_R ? P_R : b_x;
-				// Solid things
-				b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x + sp : b_x;
-				mv = true;
-			}
-			if (key[KeyEvent.VK_RIGHT]) {
-				b_x += sp;
-				// Borders
-				b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
-				// Solid things
-				b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - sp : b_x;
-				mv = true;
+			for (int i = 0; i < 4; i++) {
+				if (key[KeyEvent.VK_LEFT + i]) {
+					b_y += Y_DIRS[i] * sp;
+					b_x += X_DIRS[i] * sp;
+					// Borders
+					b_y = b_y < P_R ? P_R : b_y;
+					b_y = b_y > (T_H - P_R) ? (T_H - P_R) : b_y;
+					b_x = b_x < P_R ? P_R : b_x;
+					b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
+					// Solid things
+					b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
+					b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
+				}
 			}
 			
 			if (mv && b_fatigue <= 600) {
@@ -190,25 +172,21 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			queue.add(new Point((int) b_x, (int) b_y));
 			while (!queue.isEmpty()) {
 				Point p = queue.pop();
-				// Up
-				if (p.y > 0 && v_map[p.y - 1][p.x] > v_map[p.y][p.x] + 1 + t_hp[p.y - 1][p.x]) {
-					v_map[p.y - 1][p.x] = v_map[p.y][p.x] + 1 + (t_type[p.y - 1][p.x] >= SOLIDS ? t_hp[p.y - 1][p.x] * 3 : 0);
-					queue.add(new Point(p.x, p.y - 1));
-				}
-				// Down
-				if (p.y < T_H - 1 && v_map[p.y + 1][p.x] > v_map[p.y][p.x] + 1 + t_hp[p.y + 1][p.x]) {
-					v_map[p.y + 1][p.x] = v_map[p.y][p.x] + 1 + (t_type[p.y + 1][p.x] >= SOLIDS ? t_hp[p.y + 1][p.x] * 3 : 0);
-					queue.add(new Point(p.x, p.y + 1));
-				}
-				// Left
-				if (p.x > 0 && v_map[p.y][p.x - 1] > v_map[p.y][p.x] + 1 + t_hp[p.y][p.x - 1]) {
-					v_map[p.y][p.x - 1] = v_map[p.y][p.x] + 1 + (t_type[p.y][p.x - 1] >= SOLIDS ? t_hp[p.y][p.x - 1] * 3 : 0);
-					queue.add(new Point(p.x - 1, p.y));
-				}
-				// Down
-				if (p.x < T_W - 1 && v_map[p.y][p.x + 1] > v_map[p.y][p.x] + 1 + t_hp[p.y][p.x + 1]) {
-					v_map[p.y][p.x + 1] = v_map[p.y][p.x] + 1 + (t_type[p.y][p.x + 1] >= SOLIDS ? t_hp[p.y][p.x + 1] * 3 : 0);
-					queue.add(new Point(p.x + 1, p.y));
+				for (int i = 0; i < 4; i++) {
+					int py2 = p.y + Y_DIRS[i];
+					int px2 = p.x + X_DIRS[i];
+					if (
+						py2 >= 0 &&
+						px2 >= 0 &&
+						py2 < T_H &&
+						px2 < T_W)
+					{
+						int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] * 3 : 0);
+						if (newV < v_map[py2][px2]) {
+							v_map[py2][px2] = newV;
+							queue.add(new Point(px2, py2));
+						}
+					}
 				}
 			}
 			
