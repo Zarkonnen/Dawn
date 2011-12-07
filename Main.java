@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -256,6 +257,21 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, 800, 600);
+			Polygon p = new Polygon();
+			for (double d = 0; d < Math.PI * 2; d += Math.PI / 1000) {
+				double y = b_y;
+				double x = b_x;
+				while (true) {
+					if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
+					if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
+					y += Math.sin(d) * 0.1;
+					x += Math.cos(d) * 0.1;
+				}
+				y += Math.sin(d) * 0.3;
+				x += Math.cos(d) * 0.3;
+				p.addPoint((int) (x * TILE_SIZE), (int) (y * TILE_SIZE));
+			}
+			g.setClip(p);
 			if (!game_over) {
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 					Color c = null;
@@ -280,22 +296,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			if (bang_tick-- > 0) {
 				g.fillOval(bang_x * TILE_SIZE, bang_y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 			}
-			g.setColor(Color.BLACK);
-			g.setStroke(new BasicStroke(10));
-			for (double d = 0; d < Math.PI * 2; d += Math.PI / 1000) {
-				double y = b_y;
-				double x = b_x;
-				while (true) {
-					if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
-					if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
-					y += Math.sin(d) * 0.1;
-					x += Math.cos(d) * 0.1;
-				}
-				y += Math.sin(d) * 0.3;
-				x += Math.cos(d) * 0.3;
-				g.drawLine((int) (x * TILE_SIZE), (int) (y * TILE_SIZE), (int) (b_x * TILE_SIZE + Math.cos(d) * 1000), (int) (b_y * TILE_SIZE + Math.sin(d) * 1000));
-			}
-			g.setColor(Color.YELLOW);
+			g.setClip(0, 0, 800, 600);
 			g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 			if (b_fatigue > 400) {
 				g.setColor(Color.ORANGE);
