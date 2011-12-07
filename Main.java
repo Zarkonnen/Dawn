@@ -128,6 +128,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					// Solid things
 					b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
 					b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
+					mv = true;
 				}
 			}
 			
@@ -258,18 +259,26 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, 800, 600);
 			Polygon p = new Polygon();
-			for (double d = 0; d < Math.PI * 2; d += Math.PI / 1000) {
+			for (double d = 0.001; d < Math.PI * 2; d += Math.PI / 2000) {
 				double y = b_y;
 				double x = b_x;
+				double d_y = Math.sin(d);
+				double d_x = Math.cos(d);
 				while (true) {
+					double yDist = (d_y < 0 ? Math.ceil(y - 1) : Math.floor(y + 1)) - y;
+					double xDist = (d_x < 0 ? Math.ceil(x - 1) : Math.floor(x + 1)) - x;
+					if (Math.abs(yDist / d_y) < Math.abs(xDist / d_x)) {
+						x += (yDist / d_y * d_x) * 1.001;
+						y += yDist * 1.001;
+					} else {
+						x += xDist * 1.001;
+						y += (xDist / d_x * d_y) * 1.001;
+					}
+					
 					if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 					if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
-					y += Math.sin(d) * 0.1;
-					x += Math.cos(d) * 0.1;
 				}
-				y += Math.sin(d) * 0.3;
-				x += Math.cos(d) * 0.3;
-				p.addPoint((int) (x * TILE_SIZE), (int) (y * TILE_SIZE));
+				p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
 			}
 			g.setClip(p);
 			if (!game_over) {
@@ -307,7 +316,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			g.setFont(new Font("Verdana", Font.PLAIN, 20));
 			g.drawString(msg, 40, 300);
 			strategy.show();
-			try { Thread.sleep(10); } catch (Exception e) {}
+			try { Thread.sleep(25); } catch (Exception e) {}
 			if (game_over) {
 				return;
 			}
