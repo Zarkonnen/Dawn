@@ -1,4 +1,3 @@
-import java.awt.BasicStroke;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
@@ -27,10 +26,6 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final int[] X_DIRS = { -1, 0, 1, 0 , -1, 1, 1,-1};
 	static final int[] Y_DIRS = {  0,-1, 0, 1 , -1,-1, 1, 1};
 	
-	int tick = 0;
-	String msg = "";
-	Random r = new Random();
-	
 	// Tile types
 	static final byte _ = 0;
 	static final byte O = 1; 
@@ -42,32 +37,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final double B_RUN_SPEED = 0.09;
 	static final double B_WALK_SPEED = 0.025;
 	static final int B_COOLDOWN = 20;
-	int b_cooldown = 0;
-	int b_fatigue = 0;
-	int b_exhaustion = 0;
-	double b_x = 14;
-	double b_y = 7;
 	
 	// v stats
 	static final double V_SPEED = 0.05;
 	static final int V_COOLDOWN = 30;
-	int v_cooldown = 0;
-	double v_x = 11;
-	double v_y = 9;
-	double v_b_x = 14;
-	double v_b_y = 7;
-	int[][] v_map = new int[T_H][T_W];
 	static final int[] Y_VANTAGES = {4,8,13,10, 5,1,14}; // 7 vantages
 	static final int[] X_VANTAGES = {3,9, 9, 2,12,7, 6};
-	int vantage_index;
-	boolean v_seen;
-	
-	// age, x, y, dx, dy
-	double[] particles = new double[200];
-	
-	// game
-	boolean v_vs_b = false;
-	boolean game_over = false;
 	
 	// map
 	static byte[] T_TO_HP = {
@@ -77,25 +52,6 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		20,// W
 		9,// D
 	};
-	
-	byte[][] t_type = {
-		{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, I, W, I, W, W, W, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-		{_, _, _, O, _, _, _, _, _, I, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-		{_, _, _, W, I, W, W, O, W, W, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, W, _, _, _, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, I, _, _, _, I, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, W, W, D, W, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, _, W, W, O, W, _, _, _, _, _, _, _, _},
-		{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _}
-	};
-	byte[][] t_hp = new byte[T_H][T_W];
 	
 	@Override
 	public void init() {
@@ -112,203 +68,256 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 
 	@Override
 	public void run() {
-		// Setup
-		for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-			t_hp[y][x] = T_TO_HP[t_type[y][x]];
-		}}
-				
-		while (true) {
-			tick++;
-			b_cooldown--;
-			v_cooldown--;
-			// b movement
-			double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
-			boolean mv = false;
-			for (int i = 0; i < 4; i++) {
-				if (key[KeyEvent.VK_LEFT + i]) {
-					b_y += Y_DIRS[i] * sp;
-					b_x += X_DIRS[i] * sp;
-					// Borders
-					b_y = b_y < P_R ? P_R : b_y;
-					b_y = b_y > (T_H - P_R) ? (T_H - P_R) : b_y;
-					b_x = b_x < P_R ? P_R : b_x;
-					b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
-					// Solid things
-					b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
-					b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
-					mv = true;
-				}
-			}
-			
-			if (mv && b_fatigue <= 600) {
-				b_fatigue++;
-				b_exhaustion++;
-			}
-			if (!mv && b_fatigue > b_exhaustion / 50) {
-				b_fatigue--;
-			}
-			
-			// Interaction
-			msg = "";
+		game: while(true) {
+			int msgWait = 0;
+			int tick = 0;
+			String msg = "";
+			String msg2 = "";
+			Random r = new Random();
 
-			for (int i = 0; i < 4; i++) {
-				int ny = ((int) b_y) + Y_DIRS[i];
-				int nx = ((int) b_x) + X_DIRS[i];
-				if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
-				switch (t_type[ny][nx]) {
-					case O:
-						msg = "Press space to lock door.";
-						if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
-							t_type[ny][nx] = D;
-							b_cooldown = B_COOLDOWN;
-						}
-						break;
-					case D:
-						msg = "Press space to open door.";
-						if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
-							t_type[ny][nx] = O;
-							b_cooldown = B_COOLDOWN;
-						}
-						break;
-				}
-			}
-			
-			// V-map update
+			// b stats
+			int b_cooldown = 0;
+			int b_fatigue = 0;
+			int b_exhaustion = 0;
+			double b_x = 14;
+			double b_y = 7;
+
+			// v stats
+			int v_cooldown = 0;
+			double v_x = 11;
+			double v_y = 9;
+			double v_b_x = 14;
+			double v_b_y = 7;
+			int[][] v_map = new int[T_H][T_W];
+			int vantage_index = 0;
+			boolean v_seen = false;
+
+			// age, x, y, dx, dy
+			double[] particles = new double[200];
+
+			// game
+			boolean v_vs_b = false;
+			boolean game_over = false;
+
+			// map
+			byte[][] t_type = {
+				{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
+				{_, _, _, W, I, W, I, W, W, W, _, _, _, _, _, _, _, _, _},
+				{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
+				{_, _, _, O, _, _, _, _, _, I, _, _, _, _, _, _, _, _, _},
+				{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
+				{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
+				{_, _, _, W, I, W, W, O, W, W, W, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, W, _, _, _, W, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, I, _, _, _, I, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, W, W, D, W, W, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, _, W, W, O, W, _, _, _, _, _, _, _, _},
+				{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _}
+			};
+			byte[][] t_hp = new byte[T_H][T_W];
+
+			// Setup
 			for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-				v_map[y][x] = 100000;
+				t_hp[y][x] = T_TO_HP[t_type[y][x]];
 			}}
-			LinkedList<Point> queue = new LinkedList<Point>();
-			v_map[(int) v_b_y][(int) v_b_x] = 0;
-			queue.add(new Point((int) v_b_x, (int) v_b_y));
-			while (!queue.isEmpty()) {
-				Point p = queue.pop();
-				for (int i = 0; i < 4; i++) {
-					int py2 = p.y + Y_DIRS[i];
-					int px2 = p.x + X_DIRS[i];
-					if (
-						py2 >= 0 &&
-						px2 >= 0 &&
-						py2 < T_H &&
-						px2 < T_W)
-					{
-						int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] * 3 : 0);
-						if (newV < v_map[py2][px2]) {
-							v_map[py2][px2] = newV;
-							queue.add(new Point(px2, py2));
+
+			while (true) {
+				if (!game_over) {
+					tick++;
+					b_cooldown--;
+					v_cooldown--;
+					// b movement
+					double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
+					boolean mv = false;
+					for (int i = 0; i < 4; i++) {
+						if (key[KeyEvent.VK_LEFT + i]) {
+							b_y += Y_DIRS[i] * sp;
+							b_x += X_DIRS[i] * sp;
+							// Borders
+							b_y = b_y < P_R ? P_R : b_y;
+							b_y = b_y > (T_H - P_R) ? (T_H - P_R) : b_y;
+							b_x = b_x < P_R ? P_R : b_x;
+							b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
+							// Solid things
+							b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
+							b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
+							mv = true;
+						}
+					}
+
+					if (mv && b_fatigue <= 600) {
+						b_fatigue++;
+						b_exhaustion++;
+					}
+					if (!mv && b_fatigue > b_exhaustion / 50) {
+						b_fatigue--;
+					}
+
+					// Interaction
+					msg = "";
+
+					for (int i = 0; i < 4; i++) {
+						int ny = ((int) b_y) + Y_DIRS[i];
+						int nx = ((int) b_x) + X_DIRS[i];
+						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
+						switch (t_type[ny][nx]) {
+							case O:
+								msg = "Press space to lock door.";
+								if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
+									t_type[ny][nx] = D;
+									b_cooldown = B_COOLDOWN;
+								}
+								break;
+							case D:
+								msg = "Press space to open door.";
+								if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
+									t_type[ny][nx] = O;
+									b_cooldown = B_COOLDOWN;
+								}
+								break;
+						}
+					}
+
+					// V-map update
+					for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+						v_map[y][x] = 100000;
+					}}
+					LinkedList<Point> queue = new LinkedList<Point>();
+					v_map[(int) v_b_y][(int) v_b_x] = 0;
+					queue.add(new Point((int) v_b_x, (int) v_b_y));
+					while (!queue.isEmpty()) {
+						Point p = queue.pop();
+						for (int i = 0; i < 4; i++) {
+							int py2 = p.y + Y_DIRS[i];
+							int px2 = p.x + X_DIRS[i];
+							if (
+								py2 >= 0 &&
+								px2 >= 0 &&
+								py2 < T_H &&
+								px2 < T_W)
+							{
+								int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] * 3 : 0);
+								if (newV < v_map[py2][px2]) {
+									v_map[py2][px2] = newV;
+									queue.add(new Point(px2, py2));
+								}
+							}
+						}
+					}
+
+					// V movement
+					int dir = -1;
+					int least = v_map[((int) v_y)][((int) v_x)];
+					for (int i = 0; i < 8; i++) {
+						int ny = ((int) v_y) + Y_DIRS[i];
+						int nx = ((int) v_x) + X_DIRS[i];
+						int ny2 = (int) (v_y + Y_DIRS[i] * V_SPEED);
+						int nx2 = (int) (v_x + X_DIRS[i] * V_SPEED);
+						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
+						int value = v_map[ny][nx];
+						if (ny2 != (int) v_y || nx2 != (int) v_x) {
+							value = Math.max(value, v_map[ny2][nx2]);
+						}
+						if (value < least) {
+							dir = i;
+							least = value;
+						}
+					}
+					double dy = 0;
+					double dx = 0;
+					double dist = Math.sqrt((b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x));
+					if (dir == -1) {
+						if (dist > P_R) {
+							dy = (b_y - v_y) / dist * V_SPEED;
+							dx = (b_x - v_x) / dist * V_SPEED;
+						}
+						if (!v_seen) {
+							// don't know where b is, pick vantage point
+							v_b_y = Y_VANTAGES[vantage_index % 7];
+							v_b_x = X_VANTAGES[(vantage_index++) % 7];
+						}
+					} else {
+						dy = Y_DIRS[dir] * V_SPEED;
+						dx = X_DIRS[dir] * V_SPEED;
+					}
+					v_y += dy;
+					v_y = v_y < P_R ? P_R : v_y;
+					v_y = v_y > (T_H - P_R) ? (T_H - P_R) : v_y;
+					v_x += dx;
+					v_x = v_x < P_R ? P_R : v_x;
+					v_x = v_x > (T_W - P_R) ? (T_W - P_R) : v_x;
+					// Walls
+					if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
+						if (v_cooldown <= 0) {
+							t_hp[(int) v_y][(int) v_x]--;
+							for (int i = 20; i < 40; i++) {
+								particles[i * 5] = r.nextDouble() * 5;
+								particles[i * 5 + 1] = ((int) v_x) * TILE_SIZE + TILE_SIZE / 2;
+								particles[i * 5 + 2] = ((int) v_y) * TILE_SIZE + TILE_SIZE / 2;
+								particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
+								particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
+							}
+							v_cooldown = V_COOLDOWN;
+							if (t_hp[(int) v_y][(int) v_x] == 0) {
+								t_type[(int) v_y][(int) v_x] = _;
+							}
+						}
+						v_y -= dy;
+						v_x -= dx;
+					}
+
+					v_vs_b = false;
+
+					if (dist < P_R * 2) {
+						b_fatigue += 7;
+						v_vs_b = true;
+						if (b_fatigue >= 600) {
+							game_over = true;
+							msg2 = "GAME OVER";
+							msgWait = 100;
 						}
 					}
 				}
-			}
-			
-			// V movement
-			int dir = -1;
-			int least = v_map[((int) v_y)][((int) v_x)];
-			for (int i = 0; i < 8; i++) {
-				int ny = ((int) v_y) + Y_DIRS[i];
-				int nx = ((int) v_x) + X_DIRS[i];
-				int ny2 = (int) (v_y + Y_DIRS[i] * V_SPEED);
-				int nx2 = (int) (v_x + X_DIRS[i] * V_SPEED);
-				if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
-				int value = v_map[ny][nx];
-				if (ny2 != (int) v_y || nx2 != (int) v_x) {
-					value = Math.max(value, v_map[ny2][nx2]);
-				}
-				if (value < least) {
-					dir = i;
-					least = value;
-				}
-			}
-			double dy = 0;
-			double dx = 0;
-			double dist = Math.sqrt((b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x));
-			if (dir == -1) {
-				if (dist > P_R) {
-					dy = (b_y - v_y) / dist * V_SPEED;
-					dx = (b_x - v_x) / dist * V_SPEED;
-				}
-				if (!v_seen) {
-					// don't know where b is, pick vantage point
-					v_b_y = Y_VANTAGES[vantage_index % 7];
-					v_b_x = X_VANTAGES[(vantage_index++) % 7];
-				}
-			} else {
-				dy = Y_DIRS[dir] * V_SPEED;
-				dx = X_DIRS[dir] * V_SPEED;
-			}
-			v_y += dy;
-			v_y = v_y < P_R ? P_R : v_y;
-			v_y = v_y > (T_H - P_R) ? (T_H - P_R) : v_y;
-			v_x += dx;
-			v_x = v_x < P_R ? P_R : v_x;
-			v_x = v_x > (T_W - P_R) ? (T_W - P_R) : v_x;
-			// Walls
-			if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
-				if (v_cooldown <= 0) {
-					t_hp[(int) v_y][(int) v_x]--;
-					for (int i = 20; i < 40; i++) {
-						particles[i * 5] = r.nextDouble() * 5;
-						particles[i * 5 + 1] = ((int) v_x) * TILE_SIZE + TILE_SIZE / 2;
-						particles[i * 5 + 2] = ((int) v_y) * TILE_SIZE + TILE_SIZE / 2;
-						particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
-						particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
-					}
-					v_cooldown = V_COOLDOWN;
-					if (t_hp[(int) v_y][(int) v_x] == 0) {
-						t_type[(int) v_y][(int) v_x] = _;
-					}
-				}
-				v_y -= dy;
-				v_x -= dx;
-			}
-			
-			v_vs_b = false;
-			if (dist < P_R * 2) {
-				b_fatigue += 7;
-				v_vs_b = true;
-				if (b_fatigue >= 600) {
-					game_over = true;
-					msg = "GAME OVER";
-				}
-			}
-			
-			
-			// Graphics
-			Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
-			g.setColor(Color.BLACK);
-			g.fillRect(0, 0, 800, 600);
-			Polygon p = new Polygon();
-			v_seen = false;
-			for (double d = 0.001; d < Math.PI * 2; d += Math.PI / 2000) {
-				double y = b_y;
-				double x = b_x;
-				double d_y = Math.sin(d);
-				double d_x = Math.cos(d);
-				while (true) {
-					// v vision
-					if ((int) v_x == (int) x && (int) v_y == (int) y) {
-						v_b_x = b_x;
-						v_b_y = b_y;
-						v_seen = true;
-						vantage_index = tick;
-					}
-					double yDist = (d_y < 0 ? Math.ceil(y - 1) : Math.floor(y + 1)) - y;
-					double xDist = (d_x < 0 ? Math.ceil(x - 1) : Math.floor(x + 1)) - x;
-					if (Math.abs(yDist / d_y) < Math.abs(xDist / d_x)) {
-						x += (yDist / d_y * d_x) * 1.001;
-						y += yDist * 1.001;
-					} else {
-						x += xDist * 1.001;
-						y += (xDist / d_x * d_y) * 1.001;
-					}
 
-					
-					if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
-					if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
+
+				// Graphics
+				Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
+				g.setColor(Color.BLACK);
+				g.fillRect(0, 0, 800, 600);
+				Polygon p = new Polygon();
+				v_seen = false;
+				for (double d = 0.001; d < Math.PI * 2; d += Math.PI / 2000) {
+					double y = b_y;
+					double x = b_x;
+					double d_y = Math.sin(d);
+					double d_x = Math.cos(d);
+					while (true) {
+						// v vision
+						if ((int) v_x == (int) x && (int) v_y == (int) y) {
+							v_b_x = b_x;
+							v_b_y = b_y;
+							v_seen = true;
+							vantage_index = tick;
+						}
+						double yDist = (d_y < 0 ? Math.ceil(y - 1) : Math.floor(y + 1)) - y;
+						double xDist = (d_x < 0 ? Math.ceil(x - 1) : Math.floor(x + 1)) - x;
+						if (Math.abs(yDist / d_y) < Math.abs(xDist / d_x)) {
+							x += (yDist / d_y * d_x) * 1.001;
+							y += yDist * 1.001;
+						} else {
+							x += xDist * 1.001;
+							y += (xDist / d_x * d_y) * 1.001;
+						}
+
+						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
+						if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
+					}
+					p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
 				}
-				p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
-			}
-			g.setClip(p);
-			if (!game_over) {
+				g.setClip(p);
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 					Color c = null;
 					switch (t_type[y][x]) {
@@ -320,42 +329,40 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					}
 					g.setColor(c);
 					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-					/*g.setColor(Color.BLACK);
-					g.drawString("" + v_map[y][x], x * TILE_SIZE + 10, y * TILE_SIZE + 20);*/
 				}}
-			}
-			g.setColor(Color.RED);
-			g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-			if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
-			g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-			g.setClip(0, 0, 800, 600);
-			// qqDPS
-			/*g.drawOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE)); // qqDPS
-			g.setColor(Color.CYAN);
-			g.drawOval((int) ((v_b_x - P_R) * TILE_SIZE), (int) ((v_b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE)); // qqDPS*/
-			g.setColor(Color.YELLOW);
-			// particles
-			for (int i = 0; i < 40; i++) {
-				if (particles[i * 5] > 0) {
-					g.fillOval((int) particles[i * 5 + 1], (int) particles[i * 5 + 2], (int) particles[i * 5] + 2, (int) particles[i * 5] + 2);
-					particles[i * 5 + 1] += particles[i * 5 + 3];
-					particles[i * 5 + 2] += particles[i * 5 + 4];
-					particles[i * 5] -= 0.3;
+				g.setColor(Color.RED);
+				g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+				if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
+				g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+				g.setClip(0, 0, 800, 600);
+				g.setColor(Color.YELLOW);
+				// particles
+				for (int i = 0; i < 40; i++) {
+					if (particles[i * 5] > 0) {
+						g.fillOval((int) particles[i * 5 + 1], (int) particles[i * 5 + 2], (int) particles[i * 5] + 2, (int) particles[i * 5] + 2);
+						particles[i * 5 + 1] += particles[i * 5 + 3];
+						particles[i * 5 + 2] += particles[i * 5 + 4];
+						particles[i * 5] -= 0.3;
+					}
 				}
-			}
-			g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
-			if (b_fatigue > 400) {
-				g.setColor(Color.ORANGE);
-				g.fillRect(760, 600 - b_fatigue / 4, 40, (b_fatigue - 400) / 4);
-			}
-			g.setColor(Color.WHITE);
-			g.fillRect(760, 600 - b_exhaustion / 50, 40, b_exhaustion / 50);
-			g.setFont(new Font("Verdana", Font.PLAIN, 20));
-			g.drawString(msg, 40, 300);
-			strategy.show();
-			try { Thread.sleep(25); } catch (Exception e) {}
-			if (game_over) {
-				return;
+				g.setFont(new Font("Verdana", Font.PLAIN, 20));
+				g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
+				if (b_fatigue > 400) {
+					g.setColor(Color.ORANGE);
+					g.fillRect(760, 600 - b_fatigue / 4, 40, (b_fatigue - 400) / 4);
+				}
+				g.setColor(Color.WHITE);
+				g.fillRect(760, 600 - b_exhaustion / 50, 40, b_exhaustion / 50);
+				g.drawString(msg, 40, 280);
+				g.drawString(msg2, 40, 320);
+				strategy.show();
+				try { Thread.sleep(25); } catch (Exception e) {}
+				if (msgWait-- < 0) {
+					msg2 = "";
+					if (game_over) {
+						continue game;
+					}
+				}
 			}
 		}
 	}
