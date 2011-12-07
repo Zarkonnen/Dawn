@@ -98,8 +98,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			double[] particles = new double[400];
 
 			// game
-			boolean v_vs_b = false;
 			boolean game_over = false;
+			boolean dawn = false;
 
 			// map
 			byte[][] t_type = {
@@ -271,11 +271,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						v_x -= dx;
 					}
 
-					v_vs_b = false;
-
 					if (dist < P_R * 2) {
 						b_fatigue += 7;
-						v_vs_b = true;
 						if (b_fatigue >= 600) {
 							game_over = true;
 							msg2 = "GAME OVER";
@@ -291,6 +288,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					if (tick > 6000) {
 						game_over = true;
 						msg2 = "VICTORY!";
+						dawn = true;
 						msgWait = 400;
 						for (int i = 0; i < 80; i++) {
 							particles[i * 5] = r.nextDouble() * 10;
@@ -396,6 +394,10 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					//g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 					//if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
 					//g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+				}
+				if (dawn) {
+					g.setColor(new Color(255, 255, 150, 70));
+					g.fillRect(0, 0, 800, 600);
 				}
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
