@@ -26,6 +26,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final int[] X_DIRS = { -1, 0, 1, 0 , -1, 1, 1,-1};
 	static final int[] Y_DIRS = {  0,-1, 0, 1 , -1,-1, 1, 1};
 	
+	int tick = 0;
 	String msg = "";
 	
 	// Tile types
@@ -51,7 +52,13 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	int v_cooldown = 0;
 	double v_x = 11;
 	double v_y = 9;
+	double v_b_x = 14;
+	double v_b_y = 7;
 	int[][] v_map = new int[T_H][T_W];
+	static final int[] Y_VANTAGES = {4,8,13,10, 5,1,14}; // 7 vantages
+	static final int[] X_VANTAGES = {3,9, 9, 2,12,7, 6};
+	int vantage_index;
+	boolean v_seen;
 	
 	// bang
 	int bang_tick = 0;
@@ -111,6 +118,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		}}
 				
 		while (true) {
+			tick++;
 			b_cooldown--;
 			v_cooldown--;
 			// b movement
@@ -170,8 +178,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				v_map[y][x] = 100000;
 			}}
 			LinkedList<Point> queue = new LinkedList<Point>();
-			v_map[(int) b_y][(int) b_x] = 0;
-			queue.add(new Point((int) b_x, (int) b_y));
+			v_map[(int) v_b_y][(int) v_b_x] = 0;
+			queue.add(new Point((int) v_b_x, (int) v_b_y));
 			while (!queue.isEmpty()) {
 				Point p = queue.pop();
 				for (int i = 0; i < 4; i++) {
@@ -218,9 +226,14 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					dy = (b_y - v_y) / dist * V_SPEED;
 					dx = (b_x - v_x) / dist * V_SPEED;
 				}
+				if (!v_seen) {
+					// don't know where b is, pick vantage point
+					v_b_y = Y_VANTAGES[vantage_index % 7];
+					v_b_x = X_VANTAGES[(vantage_index++) % 7];
+				}
 			} else {
 				dy = Y_DIRS[dir] * V_SPEED;
-				dx = X_DIRS[dir] * V_SPEED;;
+				dx = X_DIRS[dir] * V_SPEED;
 			}
 			v_y += dy;
 			v_y = v_y < P_R ? P_R : v_y;
@@ -254,17 +267,26 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				}
 			}
 			
+			
 			// Graphics
 			Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, 800, 600);
 			Polygon p = new Polygon();
+			v_seen = false;
 			for (double d = 0.001; d < Math.PI * 2; d += Math.PI / 2000) {
 				double y = b_y;
 				double x = b_x;
 				double d_y = Math.sin(d);
 				double d_x = Math.cos(d);
 				while (true) {
+					// v vision
+					if ((int) v_x == (int) x && (int) v_y == (int) y) {
+						v_b_x = b_x;
+						v_b_y = b_y;
+						v_seen = true;
+						vantage_index = tick;
+					}
 					double yDist = (d_y < 0 ? Math.ceil(y - 1) : Math.floor(y + 1)) - y;
 					double xDist = (d_x < 0 ? Math.ceil(x - 1) : Math.floor(x + 1)) - x;
 					if (Math.abs(yDist / d_y) < Math.abs(xDist / d_x)) {
@@ -274,6 +296,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						x += xDist * 1.001;
 						y += (xDist / d_x * d_y) * 1.001;
 					}
+
 					
 					if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 					if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
@@ -306,6 +329,10 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.fillOval(bang_x * TILE_SIZE, bang_y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 			}
 			g.setClip(0, 0, 800, 600);
+			// qqDPS
+			/*g.drawOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE)); // qqDPS
+			g.setColor(Color.CYAN);
+			g.drawOval((int) ((v_b_x - P_R) * TILE_SIZE), (int) ((v_b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE)); // qqDPS*/
 			g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 			if (b_fatigue > 400) {
 				g.setColor(Color.ORANGE);
