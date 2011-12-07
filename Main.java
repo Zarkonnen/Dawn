@@ -93,7 +93,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			boolean v_seen = false;
 
 			// age, x, y, dx, dy
-			double[] particles = new double[200];
+			double[] particles = new double[400];
 
 			// game
 			boolean v_vs_b = false;
@@ -280,6 +280,24 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							msgWait = 100;
 						}
 					}
+					
+					if (tick % 1500 == 0) {
+						msg2 = ((6000 - tick) / 1500) + " minutes until dawn";
+						msgWait = 200;
+					}
+					
+					if (tick > 6000) {
+						game_over = true;
+						msg2 = "VICTORY!";
+						msgWait = 400;
+						for (int i = 0; i < 80; i++) {
+							particles[i * 5] = r.nextDouble() * 10;
+							particles[i * 5 + 1] = v_x * TILE_SIZE;
+							particles[i * 5 + 2] = v_y * TILE_SIZE;
+							particles[i * 5 + 3] = r.nextDouble() * 10 - 5;
+							particles[i * 5 + 4] = r.nextDouble() * 10 - 5;
+						}
+					}
 				}
 
 
@@ -330,10 +348,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					g.setColor(c);
 					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 				}}
-				g.setColor(Color.RED);
-				g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-				if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
-				g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+				if (!game_over) {
+					g.setColor(Color.RED);
+					g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+					if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
+					g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+				}
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
 				// particles
