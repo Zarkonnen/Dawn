@@ -65,9 +65,9 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static byte[] T_TO_HP = {
 		0, // _
 		10,// O
-		12,// I
+		14,// I
 		20,// W
-		10,// D
+		9,// D
 	};
 	
 	byte[][] t_type = {
@@ -192,22 +192,22 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				Point p = queue.pop();
 				// Up
 				if (p.y > 0 && v_map[p.y - 1][p.x] > v_map[p.y][p.x] + 1 + t_hp[p.y - 1][p.x]) {
-					v_map[p.y - 1][p.x] = v_map[p.y][p.x] + 1 + t_hp[p.y - 1][p.x];
+					v_map[p.y - 1][p.x] = v_map[p.y][p.x] + 1 + (t_type[p.y - 1][p.x] >= SOLIDS ? t_hp[p.y - 1][p.x] * 3 : 0);
 					queue.add(new Point(p.x, p.y - 1));
 				}
 				// Down
 				if (p.y < T_H - 1 && v_map[p.y + 1][p.x] > v_map[p.y][p.x] + 1 + t_hp[p.y + 1][p.x]) {
-					v_map[p.y + 1][p.x] = v_map[p.y][p.x] + 1 + t_hp[p.y + 1][p.x];
+					v_map[p.y + 1][p.x] = v_map[p.y][p.x] + 1 + (t_type[p.y + 1][p.x] >= SOLIDS ? t_hp[p.y + 1][p.x] * 3 : 0);
 					queue.add(new Point(p.x, p.y + 1));
 				}
 				// Left
 				if (p.x > 0 && v_map[p.y][p.x - 1] > v_map[p.y][p.x] + 1 + t_hp[p.y][p.x - 1]) {
-					v_map[p.y][p.x - 1] = v_map[p.y][p.x] + 1 + t_hp[p.y][p.x - 1];
+					v_map[p.y][p.x - 1] = v_map[p.y][p.x] + 1 + (t_type[p.y][p.x - 1] >= SOLIDS ? t_hp[p.y][p.x - 1] * 3 : 0);
 					queue.add(new Point(p.x - 1, p.y));
 				}
 				// Down
 				if (p.x < T_W - 1 && v_map[p.y][p.x + 1] > v_map[p.y][p.x] + 1 + t_hp[p.y][p.x + 1]) {
-					v_map[p.y][p.x + 1] = v_map[p.y][p.x] + 1 + t_hp[p.y][p.x + 1];
+					v_map[p.y][p.x + 1] = v_map[p.y][p.x] + 1 + (t_type[p.y][p.x + 1] >= SOLIDS ? t_hp[p.y][p.x + 1] * 3 : 0);
 					queue.add(new Point(p.x + 1, p.y));
 				}
 			}
