@@ -28,10 +28,11 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	
 	// Tile types
 	static final byte _ = 0;
-	static final byte O = 1; 
-	static final byte I = 2; static final int TRANSPARENTS = 2; static final int SOLIDS = 2;
-	static final byte W = 3; 
-	static final byte D = 4;
+	static final byte G = 1;
+	static final byte O = 2; 
+	static final byte I = 3; static final int TRANSPARENTS = 3; static final int SOLIDS = 3;
+	static final byte W = 4; 
+	static final byte D = 5;
 	
 	// b stats
 	static final double B_RUN_SPEED = 0.09;
@@ -47,6 +48,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	// map
 	static byte[] T_TO_HP = {
 		0, // _
+		0, // G
 		10,// O
 		14,// I
 		20,// W
@@ -101,21 +103,21 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 
 			// map
 			byte[][] t_type = {
-				{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _},
-				{_, _, _, W, I, W, I, W, W, W, _, _, _, _, _, _, _, _, _},
-				{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-				{_, _, _, O, _, _, _, _, _, I, _, _, _, _, _, _, _, _, _},
-				{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-				{_, _, _, W, _, _, _, _, _, W, _, _, _, _, _, _, _, _, _},
-				{_, _, _, W, I, W, W, O, W, W, W, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, W, _, _, _, W, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, I, _, _, _, I, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, W, W, D, W, W, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, _, W, _, _, W, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, _, W, W, O, W, _, _, _, _, _, _, _, _},
-				{_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _}
+				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, I, W, I, W, W, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, O, _, _, _, _, _, I, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, I, W, W, O, W, W, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, W, _, _, _, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, I, _, _, _, I, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, W, W, D, W, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, G, W, _, _, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, G, W, _, _, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, G, W, W, O, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}
 			};
 			byte[][] t_hp = new byte[T_H][T_W];
 
@@ -303,7 +305,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 
 				// Graphics
 				Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
-				g.setColor(Color.BLACK);
+				g.setColor(new Color(0, 0, 30));
 				g.fillRect(0, 0, 800, 600);
 				Polygon p = new Polygon();
 				v_seen = false;
@@ -337,22 +339,63 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				}
 				g.setClip(p);
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+					if (t_type[y][x] == G) {
+						g.setColor(new Color(37, 59, 29));
+						g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					}
+				} }
+				g.setColor(new Color(44, 70, 34));
+				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+					if (t_type[y][x] == I) {
+						g.fillOval(x * TILE_SIZE - 100, y * TILE_SIZE - 100, 240, 240);
+					}
+				}}
+				for (int y = 0; y < T_H; y++) { lp: for (int x = 0; x < T_W; x++) {
 					Color c = null;
 					switch (t_type[y][x]) {
-						case _: c = Color.LIGHT_GRAY; break;
-						case W: c = Color.DARK_GRAY;  break;
-						case O: c = Color.GRAY;       break;
-						case D: c = new Color(127, 127, 0); break;
-						case I: c = new Color(127, 127, 255); break;
+						case O:
+						case D:
+						case _: c = new Color(59, 39, 29); break;
+						case G: continue lp; //c = new Color(37, 59, 29); break;
+						case I:
+						case W: c = new Color(101, 81, 72); break;
 					}
 					g.setColor(c);
 					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					switch (t_type[y][x]) {
+						case D:
+							g.setColor(new Color(142, 130, 123));
+							g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+						case O:
+							g.setColor(new Color(87, 63, 51));
+							g.fillRect(x * TILE_SIZE, y * TILE_SIZE, 5, TILE_SIZE);
+							g.fillRect(x * TILE_SIZE + 35, y * TILE_SIZE, 5, TILE_SIZE);
+							break;
+						case I:
+							g.setColor(new Color(133, 133, 176));
+							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 16, 16);
+							g.fillRect(x * TILE_SIZE + 22, y * TILE_SIZE + 2, 16, 16);
+							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 22, 16, 16);
+							g.fillRect(x * TILE_SIZE + 22, y * TILE_SIZE + 22, 16, 16);
+					}
 				}}
 				if (!game_over) {
+					g.setColor(Color.BLACK);
+					g.fillRect((int) (v_x * TILE_SIZE) - 7, (int) (v_y * TILE_SIZE) - 5, 14, 19);
+					g.fillRect((int) (b_x * TILE_SIZE) - 1, (int) (b_y * TILE_SIZE) - 14, 5, 10);
+					g.setColor(Color.WHITE);
+					g.fillOval((int) (v_x * TILE_SIZE) - 4, (int) (v_y * TILE_SIZE) - 12, 9, 9);
+					g.fillOval((int) (b_x * TILE_SIZE) - 3, (int) (b_y * TILE_SIZE) - 12, 7, 6);
+					g.fillRect((int) (b_x * TILE_SIZE) - 3, (int) (b_y * TILE_SIZE) - 4, 1, 6);
+					g.fillRect((int) (b_x * TILE_SIZE) + 4, (int) (b_y * TILE_SIZE) - 4, 1, 6);
+					// body
 					g.setColor(Color.RED);
-					g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-					if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
-					g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 8);
+					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
+					g.fillRect((int) (b_x * TILE_SIZE) + 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
+					//g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
+					//if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
+					//g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 				}
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
