@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferStrategy;
 import java.util.LinkedList;
+import java.util.Random;
 import javax.swing.JApplet;
 
 public class Main extends JApplet implements Runnable, KeyListener, MouseListener {
@@ -28,6 +29,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	
 	int tick = 0;
 	String msg = "";
+	Random r = new Random();
 	
 	// Tile types
 	static final byte _ = 0;
@@ -60,10 +62,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	int vantage_index;
 	boolean v_seen;
 	
-	// bang
-	int bang_tick = 0;
-	int bang_x = -1;
-	int bang_y = -1;
+	// age, x, y, dx, dy
+	double[] particles = new double[200];
 	
 	// game
 	boolean v_vs_b = false;
@@ -245,9 +245,13 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
 				if (v_cooldown <= 0) {
 					t_hp[(int) v_y][(int) v_x]--;
-					bang_tick = 10;
-					bang_y = (int) v_y;
-					bang_x = (int) v_x;
+					for (int i = 20; i < 40; i++) {
+						particles[i * 5] = r.nextDouble() * 5;
+						particles[i * 5 + 1] = ((int) v_x) * TILE_SIZE + TILE_SIZE / 2;
+						particles[i * 5 + 2] = ((int) v_y) * TILE_SIZE + TILE_SIZE / 2;
+						particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
+						particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
+					}
 					v_cooldown = V_COOLDOWN;
 					if (t_hp[(int) v_y][(int) v_x] == 0) {
 						t_type[(int) v_y][(int) v_x] = _;
@@ -324,15 +328,21 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 			if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
 			g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-			g.setColor(Color.YELLOW);
-			if (bang_tick-- > 0) {
-				g.fillOval(bang_x * TILE_SIZE, bang_y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-			}
 			g.setClip(0, 0, 800, 600);
 			// qqDPS
 			/*g.drawOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE)); // qqDPS
 			g.setColor(Color.CYAN);
 			g.drawOval((int) ((v_b_x - P_R) * TILE_SIZE), (int) ((v_b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE)); // qqDPS*/
+			g.setColor(Color.YELLOW);
+			// particles
+			for (int i = 0; i < 40; i++) {
+				if (particles[i * 5] > 0) {
+					g.fillOval((int) particles[i * 5 + 1], (int) particles[i * 5 + 2], (int) particles[i * 5] + 2, (int) particles[i * 5] + 2);
+					particles[i * 5 + 1] += particles[i * 5 + 3];
+					particles[i * 5 + 2] += particles[i * 5 + 4];
+					particles[i * 5] -= 0.3;
+				}
+			}
 			g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 			if (b_fatigue > 400) {
 				g.setColor(Color.ORANGE);
