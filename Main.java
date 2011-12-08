@@ -27,6 +27,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	
 	static final int[] X_DIRS = { -1, 0, 1, 0 , -1, 1, 1,-1};
 	static final int[] Y_DIRS = {  0,-1, 0, 1 , -1,-1, 1, 1};
+	static final int[] DIR_KEYS = { KeyEvent.VK_A, KeyEvent.VK_W, KeyEvent.VK_D, KeyEvent.VK_S };
 	
 	// Tile types
 	static final byte _ = 0;
@@ -51,7 +52,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final int KEY = 1;
 	static final int GUN = 2;
 	static final int CROSS = 3;
-	static final int REPEL = 5;
+	static final int REPEL = 10;
 	static final String[] ITEM_NAMES = { "", "key", "gun", "crucifix" };
 	
 	// v stats
@@ -93,7 +94,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	public void run() {
 		game: while(true) {
 			int msgWait = 0;
-			int tick = 0;
+			int tick = -1;
 			String msg = "";
 			String msg2 = "";
 			Random r = new Random();
@@ -169,7 +170,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
 					boolean mv = false;
 					for (int i = 0; i < 4; i++) {
-						if (key[KeyEvent.VK_LEFT + i]) {
+						if (key[DIR_KEYS[i]]) {
 							b_y += Y_DIRS[i] * sp;
 							b_x += X_DIRS[i] * sp;
 							// Borders
@@ -217,7 +218,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
 						switch (t_type[ny][nx]) {
 							case B:
-								msg = "Press X to search.";
+								msg = "Hold down X to search drawers.";
 								if (key[KeyEvent.VK_X]) {
 									if (b_push >= 80) {
 										b_push = 0;
@@ -428,7 +429,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 						// sparkles & shooting & things
 						if (((bullets > 0 && inventory_ptr == GUN) || (inventory_ptr == CROSS)) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
-							v_repel_map[(int) y][(int) x] = REPEL;
+							if (inventory_ptr == CROSS) { v_repel_map[(int) y][(int) x] = REPEL; }
 							if (r.nextInt(16) == 0) {
 								double offset = r.nextDouble() * 40;
 								particles[sprk * 5] = 1;
@@ -586,8 +587,9 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.setColor(Color.YELLOW);
 				g.setFont(new Font("Verdana", Font.PLAIN, 20));
 				g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
+				g.setColor(Color.ORANGE);
+				g.fillRect(760, 450, 40, 1);
 				if (b_fatigue > 400) {
-					g.setColor(Color.ORANGE);
 					g.fillRect(760, 600 - b_fatigue / 4, 40, (b_fatigue - 400) / 4);
 				}
 				
