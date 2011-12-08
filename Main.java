@@ -276,7 +276,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 								py2 < T_H &&
 								px2 < T_W)
 							{
-								int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] * 2 : 0) + v_repel_map[py2][px2];
+								int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] : 0) + v_repel_map[py2][px2];
 								if (newV < v_map[py2][px2]) {
 									v_map[py2][px2] = newV;
 									queue.add(new Point(px2, py2));
@@ -474,7 +474,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
 				}
 				click = false;
-				g.setClip(p);
+				if (!dawn) { g.setClip(p); }
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 					if (t_type[y][x] == G) {
 						g.setColor(new Color(37, 59, 29));
@@ -546,10 +546,10 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					}
 				}}
 				// players
-				if (!game_over) {
+				if (!dawn) {
 					g.setColor(Color.BLACK);
 					g.fillRect((int) (v_x * TILE_SIZE) - 7, (int) (v_y * TILE_SIZE) - 5, 14, 19);
-					g.fillRect((int) (b_x * TILE_SIZE) - 1, (int) (b_y * TILE_SIZE) - 14, 5, 10);
+					g.fillRect((int) (b_x * TILE_SIZE) - 1, (int) (b_y * TILE_SIZE) - 14, 6, 10);
 					g.setColor(Color.WHITE);
 					g.fillOval((int) (v_x * TILE_SIZE) - 4, (int) (v_y * TILE_SIZE) - 12, 9, 9);
 					g.fillOval((int) (b_x * TILE_SIZE) - 3, (int) (b_y * TILE_SIZE) - 12, 7, 6);
