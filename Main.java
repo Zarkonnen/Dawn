@@ -8,14 +8,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 import java.util.LinkedList;
 import java.util.Random;
 import javax.swing.JApplet;
 
-public class Main extends JApplet implements Runnable, KeyListener, MouseListener {
+public class Main extends JApplet implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 	boolean key[] = new boolean[65535];
-	MouseEvent click = null;
+	boolean click = false;
+	int my, mx;
 	BufferStrategy strategy;
 	
 	static final int TILE_SIZE = 40;
@@ -40,9 +42,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final double B_RUN_SPEED = 0.09;
 	static final double B_WALK_SPEED = 0.025;
 	static final int B_COOLDOWN = 20;
+	static final int GUN_DMG = 6;
+	static final int GUN_V_DMG = 500;
 	
 	// v stats
 	static final double V_SPEED = 0.05;
+	static final double V_HURT_SPEED = 0.03;	
 	static final int V_COOLDOWN = 30;
 	static final int[] Y_VANTAGES = {4,8,13,10, 5,1,14}; // 7 vantages
 	static final int[] X_VANTAGES = {3,9, 9, 2,12,7, 6};
@@ -52,7 +57,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		0, // _
 		0, // G
 		10,// O
-		8, // T
+		6, // T
 		2, // C
 		14,// I
 		20,// W
@@ -69,6 +74,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		strategy = canvas.getBufferStrategy();
 		canvas.addKeyListener(this);
 		canvas.addMouseListener(this);
+		canvas.addMouseMotionListener(this);
 		new Thread(this).start();
 	}
 
@@ -86,20 +92,22 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			int b_fatigue = 0;
 			int b_exhaustion = 0;
 			int b_push = 0;
-			double b_x = 14;
-			double b_y = 7;
+			double b_x = 14.5;
+			double b_y = 7.5;
 
 			// v stats
 			int v_cooldown = 0;
-			double v_x = 11;
-			double v_y = 9;
-			double v_b_x = 14;
-			double v_b_y = 7;
+			int v_dmg = 0;
+			double v_x = 13.5;
+			double v_y = 11.5;
+			double v_b_x = 14.5;
+			double v_b_y = 7.5;
 			int[][] v_map = new int[T_H][T_W];
 			int vantage_index = 0;
 			boolean v_seen = false;
 
 			// age, x, y, dx, dy
+			int sprk = 0;
 			double[] particles = new double[400];
 
 			// game
@@ -136,6 +144,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					tick++;
 					b_cooldown--;
 					v_cooldown--;
+					v_dmg--;
 					msg = "";
 					// b movement
 					double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
@@ -235,11 +244,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					// V movement
 					int dir = -1;
 					int least = v_map[((int) v_y)][((int) v_x)];
+					sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
 					for (int i = 0; i < 8; i++) {
 						int ny = ((int) v_y) + Y_DIRS[i];
 						int nx = ((int) v_x) + X_DIRS[i];
-						int ny2 = (int) (v_y + Y_DIRS[i] * V_SPEED);
-						int nx2 = (int) (v_x + X_DIRS[i] * V_SPEED);
+						int ny2 = (int) (v_y + Y_DIRS[i] * sp);
+						int nx2 = (int) (v_x + X_DIRS[i] * sp);
 						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
 						// Prevent slipping through diagonal gaps.
 						if (t_type[ny2][nx2] < SOLIDS && t_type[ny2][(int) v_x] >= SOLIDS && t_type[(int) v_y][nx2] >= SOLIDS) {
@@ -260,8 +270,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					double dist = Math.sqrt((b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x));
 					if (dir == -1) {
 						if (dist > P_R) {
-							dy = (b_y - v_y) / dist * V_SPEED;
-							dx = (b_x - v_x) / dist * V_SPEED;
+							dy = (b_y - v_y) / dist * sp;
+							dx = (b_x - v_x) / dist * sp;
 						}
 						if (!v_seen) {
 							// don't know where b is, pick vantage point
@@ -269,8 +279,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							v_b_x = X_VANTAGES[(vantage_index++) % 7];
 						}
 					} else {
-						dy = Y_DIRS[dir] * V_SPEED;
-						dx = X_DIRS[dir] * V_SPEED;
+						dy = Y_DIRS[dir] * sp;
+						dx = X_DIRS[dir] * sp;
 					}
 					v_y += dy;
 					v_y = v_y < P_R ? P_R : v_y;
@@ -299,7 +309,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					}
 
 					if (dist < P_R * 2) {
-						b_fatigue += 7;
+						b_fatigue += v_dmg > 0 ? 3 : 7;
 						if (b_fatigue >= 600) {
 							game_over = true;
 							msg2 = "GAME OVER";
@@ -326,7 +336,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						}
 					}
 				}
-
+				
+				double ptr = Math.atan2(b_y * TILE_SIZE - my, b_x * TILE_SIZE - mx) + Math.PI;
 
 				// Graphics
 				Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
@@ -339,6 +350,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					double x = b_x;
 					double d_y = Math.sin(d);
 					double d_x = Math.cos(d);
+					boolean blocked = false;
 					while (true) {
 						// v vision
 						if ((int) v_x == (int) x && (int) v_y == (int) y) {
@@ -358,10 +370,51 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						}
 
 						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
+						// sparkles & shooting & things
+						if (Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
+							if (r.nextInt(16) == 0) {
+								double offset = r.nextDouble() * 40;
+								particles[sprk * 5] = 1;
+								particles[sprk * 5 + 1] = x * TILE_SIZE + offset * d_x;
+								particles[sprk * 5 + 2] = y * TILE_SIZE + offset * d_y;
+								particles[sprk * 5 + 3] = 0;
+								particles[sprk * 5 + 4] = 0;
+								sprk = (sprk + 1) % 20;
+							}
+							if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) {
+								blocked = true;
+								if (click && b_cooldown <= 0) {
+									for (int i = 40; i < 80; i++) {
+										particles[i * 5] = r.nextDouble() * 5;
+										particles[i * 5 + 1] = x * TILE_SIZE + d_x;
+										particles[i * 5 + 2] = y * TILE_SIZE + d_y;
+										particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
+										particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
+									}
+								}
+							}
+							if (t_type[(int) y][(int) x] >= SOLIDS) {
+								if (click && b_cooldown <= 0) {
+									b_cooldown = B_COOLDOWN;
+									t_hp[(int) y][(int) x] -= GUN_DMG;
+									if (t_hp[(int) y][(int) x] <= 0) {
+										t_type[(int) y][(int) x] = _;
+									}
+								}
+							}
+							if (((int) y == (int) v_y && (int) x == (int) v_x)) {
+								if (click && b_cooldown <= 0) {
+									b_cooldown = B_COOLDOWN;
+									v_dmg = GUN_V_DMG;
+								}
+							}
+						}
+						//if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) { blocked = true; }
 						if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
 					}
 					p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
 				}
+				click = false;
 				g.setClip(p);
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 					if (t_type[y][x] == G) {
@@ -432,6 +485,9 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 8);
 					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
 					g.fillRect((int) (b_x * TILE_SIZE) + 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
+					if (v_dmg > 0) {
+						g.fillOval((int) (v_x * TILE_SIZE), (int) (v_y * TILE_SIZE), 3, 7);
+					}
 					//g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 					//if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
 					//g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
@@ -443,12 +499,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
 				// particles
-				for (int i = 0; i < 40; i++) {
+				for (int i = 0; i < 80; i++) {
 					if (particles[i * 5] > 0) {
 						g.fillOval((int) particles[i * 5 + 1], (int) particles[i * 5 + 2], (int) particles[i * 5] + 2, (int) particles[i * 5] + 2);
 						particles[i * 5 + 1] += particles[i * 5 + 3];
 						particles[i * 5 + 2] += particles[i * 5 + 4];
-						particles[i * 5] -= 0.3;
+						particles[i * 5]     -= 0.3;
 					}
 				}
 				g.setFont(new Font("Verdana", Font.PLAIN, 20));
@@ -462,7 +518,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.drawString(msg, 40, 280);
 				g.drawString(msg2, 40, 320);
 				strategy.show();
-				try { Thread.sleep(25); } catch (Exception e) {}
+				try { Thread.sleep(20); } catch (Exception e) {}
 				if (msgWait-- < 0) {
 					msg2 = "";
 					if (game_over) {
@@ -490,7 +546,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	public void mouseClicked(MouseEvent e) {}
 	@Override
 	public void mousePressed(MouseEvent e) {
-		click = e;
+		click = true;
 	}
 	@Override
 	public void mouseReleased(MouseEvent e) {}
@@ -498,4 +554,13 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	public void mouseEntered(MouseEvent e) {}
 	@Override
 	public void mouseExited(MouseEvent e) {}
+
+	@Override
+	public void mouseDragged(MouseEvent me) {}
+
+	@Override
+	public void mouseMoved(MouseEvent me) {
+		my = me.getY();
+		mx = me.getX();
+	}
 }
