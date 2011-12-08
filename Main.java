@@ -48,6 +48,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	// inventory
 	static final int KEY = 1;
 	static final int GUN = 2;
+	static final int CROSS = 3;
+	static final int REPEL = 5;
 	
 	// v stats
 	static final double V_SPEED = 0.05;
@@ -108,6 +110,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			double v_y = 11.5;
 			double v_b_x = 14.5;
 			double v_b_y = 7.5;
+			int[][] v_repel_map = new int[T_H][T_W];
 			int[][] v_map = new int[T_H][T_W];
 			int vantage_index = 0;
 			boolean v_seen = false;
@@ -153,7 +156,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					v_dmg--;
 					msg = "";
 					// inventory
-					for (int i = 1; i < 3; i++) {
+					for (int i = 1; i < 4; i++) {
 						if (key[KeyEvent.VK_1 + i - 1]) { inventory_ptr = i; }
 					}
 					// b movement
@@ -246,7 +249,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 								py2 < T_H &&
 								px2 < T_W)
 							{
-								int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] * 2 : 0);
+								int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] * 2 : 0) + v_repel_map[py2][px2];
 								if (newV < v_map[py2][px2]) {
 									v_map[py2][px2] = newV;
 									queue.add(new Point(px2, py2));
@@ -254,6 +257,9 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							}
 						}
 					}
+					for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+						v_repel_map[y][x] = 0;
+					}}
 
 					// V movement
 					int dir = -1;
@@ -385,7 +391,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 
 						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 						// sparkles & shooting & things
-						if (bullets > 0 && inventory_ptr == GUN && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
+						if (((bullets > 0 && inventory_ptr == GUN) || (inventory_ptr == CROSS)) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
+							v_repel_map[(int) y][(int) x] = REPEL;
 							if (r.nextInt(16) == 0) {
 								double offset = r.nextDouble() * 40;
 								particles[sprk * 5] = 1;
@@ -395,37 +402,39 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 								particles[sprk * 5 + 4] = 0;
 								sprk = (sprk + 1) % 20;
 							}
-							if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) {
-								blocked = true;
-								if (bullets > 0 && click && b_cooldown <= 0) {
-									for (int i = 40; i < 80; i++) {
-										particles[i * 5] = r.nextDouble() * 5;
-										particles[i * 5 + 1] = x * TILE_SIZE + d_x;
-										particles[i * 5 + 2] = y * TILE_SIZE + d_y;
-										particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
-										particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
-									}
-									bullets--;
-								}
-							}
-							if (t_type[(int) y][(int) x] >= SOLIDS) {
-								if (bullets > 0 && click && b_cooldown <= 0) {
-									b_cooldown = B_COOLDOWN;
-									t_hp[(int) y][(int) x] -= GUN_DMG;
-									if (t_hp[(int) y][(int) x] <= 0) {
-										t_type[(int) y][(int) x] = _;
+							if (inventory_ptr == GUN) {
+								if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) {
+									blocked = true;
+									if (bullets > 0 && click && b_cooldown <= 0) {
+										for (int i = 40; i < 80; i++) {
+											particles[i * 5] = r.nextDouble() * 5;
+											particles[i * 5 + 1] = x * TILE_SIZE + d_x;
+											particles[i * 5 + 2] = y * TILE_SIZE + d_y;
+											particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
+											particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
+										}
+										bullets--;
 									}
 								}
-							}
-							if (((int) y == (int) v_y && (int) x == (int) v_x)) {
-								if (bullets > 0 && click && b_cooldown <= 0) {
-									b_cooldown = B_COOLDOWN;
-									v_dmg = GUN_V_DMG;
+								if (t_type[(int) y][(int) x] >= SOLIDS) {
+									if (bullets > 0 && click && b_cooldown <= 0) {
+										b_cooldown = B_COOLDOWN;
+										t_hp[(int) y][(int) x] -= GUN_DMG;
+										if (t_hp[(int) y][(int) x] <= 0) {
+											t_type[(int) y][(int) x] = _;
+										}
+									}
+								}
+								if (((int) y == (int) v_y && (int) x == (int) v_x)) {
+									if (bullets > 0 && click && b_cooldown <= 0) {
+										b_cooldown = B_COOLDOWN;
+										v_dmg = GUN_V_DMG;
+									}
 								}
 							}
 						}
-						//if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) { blocked = true; }
-						if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
+													if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
+
 					}
 					p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
 				}
@@ -532,7 +541,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				
 				// inventory
 				g.setColor(Color.YELLOW);
-				for (int i = 0; i < 3; i++) {
+				for (int i = 0; i < 4; i++) {
 					if (i == inventory_ptr) {
 						g.drawRect(761, i * 40 - 39, 37, 37);
 					}
@@ -545,8 +554,11 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.fillRect(790, 19, 2, 8);
 				// gun
 				g.fillRect(765, 53, 30, 6);
-				g.setColor(new Color(142, 130, 123));
+				g.setColor(new Color(115, 63, 45));
 				g.fillRect(767, 59, 8, 14);
+				// cross
+				g.fillRect(778, 85, 4, 30);
+				g.fillRect(770, 94, 20, 4);
 				
 				g.setColor(Color.WHITE);
 				g.drawString("" + bullets, 782, 76);
