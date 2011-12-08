@@ -29,10 +29,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	// Tile types
 	static final byte _ = 0;
 	static final byte G = 1;
-	static final byte O = 2; 
-	static final byte I = 3; static final int TRANSPARENTS = 3; static final int SOLIDS = 3;
-	static final byte W = 4; 
-	static final byte D = 5;
+	static final byte O = 2;
+	static final byte T = 3; static final int SOLIDS = 3;
+	static final byte C = 4;
+	static final byte I = 5; static final int TRANSPARENTS = 5;
+	static final byte W = 6; 
+	static final byte D = 7;
 	
 	// b stats
 	static final double B_RUN_SPEED = 0.09;
@@ -50,6 +52,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		0, // _
 		0, // G
 		10,// O
+		8, // T
+		2, // C
 		14,// I
 		20,// W
 		9,// D
@@ -81,6 +85,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			int b_cooldown = 0;
 			int b_fatigue = 0;
 			int b_exhaustion = 0;
+			int b_push = 0;
 			double b_x = 14;
 			double b_y = 7;
 
@@ -107,11 +112,11 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, I, W, I, W, W, W, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, O, _, _, _, _, _, I, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, O, _, _, T, _, _, I, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, _, _, C, _, _, W, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, I, W, W, O, W, W, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, W, _, _, _, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, W, _, C, _, W, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, I, _, _, _, I, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, W, W, D, W, W, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, G, W, _, _, W, G, G, G, G, G, G, G, G},
@@ -131,6 +136,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					tick++;
 					b_cooldown--;
 					v_cooldown--;
+					msg = "";
 					// b movement
 					double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
 					boolean mv = false;
@@ -144,6 +150,24 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							b_x = b_x < P_R ? P_R : b_x;
 							b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
 							// Solid things
+							if (t_type[(int) b_y][(int) b_x] >= SOLIDS && t_type[(int) b_y][(int) b_x] < TRANSPARENTS) {
+								if (b_push > 16) {
+									int ny = ((int) b_y) + Y_DIRS[i];
+									int nx = ((int) b_x) + X_DIRS[i];
+									if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] == _ && !(ny == (int) v_y && nx == (int) v_x)) {
+										t_type[ny][nx] = t_type[(int) b_y][(int) b_x];
+										t_hp[ny][nx] = t_hp[(int) b_y][(int) b_x];
+										t_type[(int) b_y][(int) b_x] = _;
+										t_hp[(int) b_y][(int) b_x] = 0;
+										b_push = 0;
+									}
+								} else {
+									b_push++;
+									msg = "Pushing...";
+								}
+							} else {
+								b_push = 0;
+							}
 							b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
 							b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
 							mv = true;
@@ -159,8 +183,6 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					}
 
 					// Interaction
-					msg = "";
-
 					for (int i = 0; i < 4; i++) {
 						int ny = ((int) b_y) + Y_DIRS[i];
 						int nx = ((int) b_x) + X_DIRS[i];
@@ -219,6 +241,11 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						int ny2 = (int) (v_y + Y_DIRS[i] * V_SPEED);
 						int nx2 = (int) (v_x + X_DIRS[i] * V_SPEED);
 						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
+						// Prevent slipping through diagonal gaps.
+						if (t_type[ny2][nx2] < SOLIDS && t_type[ny2][(int) v_x] >= SOLIDS && t_type[(int) v_y][nx2] >= SOLIDS) {
+							continue;
+						}
+						
 						int value = v_map[ny][nx];
 						if (ny2 != (int) v_y || nx2 != (int) v_x) {
 							value = Math.max(value, v_map[ny2][nx2]);
@@ -353,6 +380,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					switch (t_type[y][x]) {
 						case O:
 						case D:
+						case T:
+						case C:
 						case _: c = new Color(59, 39, 29); break;
 						case G: continue lp; //c = new Color(37, 59, 29); break;
 						case I:
@@ -361,6 +390,18 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					g.setColor(c);
 					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					switch (t_type[y][x]) {
+						case T:
+							g.setColor(new Color(142, 130, 123));
+							g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 10, 30, 2);
+							g.fillRect(x * TILE_SIZE + 8, y * TILE_SIZE + 10, 2, 20);
+							g.fillRect(x * TILE_SIZE + 30, y * TILE_SIZE + 10, 2, 20);
+							break;
+						case C:
+							g.setColor(new Color(142, 130, 123));
+							g.fillRect(x * TILE_SIZE + 15, y * TILE_SIZE + 17, 10, 2);
+							g.fillRect(x * TILE_SIZE + 15, y * TILE_SIZE + 7, 2, 20);
+							g.fillRect(x * TILE_SIZE + 25, y * TILE_SIZE + 17, 2, 10);
+							break;
 						case D:
 							g.setColor(new Color(142, 130, 123));
 							g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
