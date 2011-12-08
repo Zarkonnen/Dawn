@@ -34,9 +34,11 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final byte O = 2;
 	static final byte T = 3; static final int SOLIDS = 3;
 	static final byte C = 4;
-	static final byte I = 5; static final int TRANSPARENTS = 5;
-	static final byte W = 6; 
-	static final byte D = 7;
+	static final byte B = 5; // closed box
+	static final byte X = 6; // open box
+	static final byte I = 7; static final int TRANSPARENTS = 7;
+	static final byte W = 8; 
+	static final byte D = 9;
 	
 	// b stats
 	static final double B_RUN_SPEED = 0.09;
@@ -50,6 +52,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final int GUN = 2;
 	static final int CROSS = 3;
 	static final int REPEL = 5;
+	static final String[] ITEM_NAMES = { "", "key", "gun", "crucifix" };
 	
 	// v stats
 	static final double V_SPEED = 0.05;
@@ -63,8 +66,10 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 		0, // _
 		0, // G
 		20,// O
-		12, // T
+		12,// T
 		4, // C
+		16,// B
+		16,// X
 		28,// I
 		40,// W
 		18,// D
@@ -100,7 +105,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			int b_push = 0;
 			double b_x = 14.5;
 			double b_y = 7.5;
-			int inventory_ptr = KEY;
+			int inventory_ptr = 0;
+			boolean[] inventory = new boolean[4];
 			int bullets = 6;
 
 			// v stats
@@ -117,7 +123,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 
 			// age, x, y, dx, dy
 			int sprk = 0;
-			double[] particles = new double[400];
+			double[] particles = new double[600];
 
 			// game
 			boolean game_over = false;
@@ -128,16 +134,16 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, I, W, I, W, W, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, O, _, _, T, _, _, I, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, _, _, C, _, _, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, _, B, _, _, _, W, G, G, G, G, G, G, G, G, G},
+				{G, G, G, O, _, _, _, T, _, I, G, G, G, G, G, G, G, G, G},
+				{G, G, G, W, B, _, C, _, _, W, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
 				{G, G, G, W, I, W, W, O, W, W, W, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, W, _, C, _, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, I, _, _, _, I, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, I, B, _, _, I, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, W, W, D, W, W, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, G, W, _, _, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, G, W, _, _, W, G, G, G, G, G, G, G, G},
+				{G, G, G, G, G, G, G, W, B, _, W, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, G, W, W, O, W, G, G, G, G, G, G, G, G},
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}
 			};
@@ -157,7 +163,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					msg = "";
 					// inventory
 					for (int i = 1; i < 4; i++) {
-						if (key[KeyEvent.VK_1 + i - 1]) { inventory_ptr = i; }
+						if (key[KeyEvent.VK_1 + i - 1] && inventory[i]) { inventory_ptr = i; }
 					}
 					// b movement
 					double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
@@ -210,6 +216,27 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						int nx = ((int) b_x) + X_DIRS[i];
 						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
 						switch (t_type[ny][nx]) {
+							case B:
+								msg = "Press X to search.";
+								if (key[KeyEvent.VK_X]) {
+									if (b_push >= 80) {
+										b_push = 0;
+										t_type[ny][nx] = X;
+										int found = r.nextInt(3) + 1;
+										if (inventory[found]) {
+											msg2 = "You found nothing.";
+										} else {
+											msg2 = "You found a " + ITEM_NAMES[found] + "!";
+											inventory[found] = true;
+											inventory_ptr = found;
+										}
+										msgWait = 100;
+									} else {
+										msg = "Searching...";
+										b_push++;
+									}
+								}
+								break;
 							case O:
 								if (inventory_ptr == KEY) {
 									msg = "Press space to lock door.";
@@ -328,8 +355,17 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						v_x -= dx;
 					}
 
-					if (dist < P_R * 2) {
-						b_fatigue += v_dmg > 0 ? 3 : 7;
+					if (dist < P_R * 2 && v_cooldown <= 0) {
+						v_cooldown = 20;
+						b_fatigue += v_dmg > 0 ? 50 : 100;
+						b_exhaustion += v_dmg > 0 ? 50 : 100;
+						for (int i = 80; i < 120; i++) {
+							particles[i * 5] = r.nextDouble() * 4;
+							particles[i * 5 + 1] = b_x * TILE_SIZE + 1;
+							particles[i * 5 + 2] = b_y * TILE_SIZE - 5;
+							particles[i * 5 + 3] = r.nextDouble() * 2 - 1;
+							particles[i * 5 + 4] = r.nextDouble() * 3 - 1;
+						}
 						if (b_fatigue >= 600) {
 							game_over = true;
 							msg2 = "GAME OVER";
@@ -433,8 +469,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 								}
 							}
 						}
-													if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
-
+						if (t_type[(int) y][(int) x] > TRANSPARENTS) { break; }
 					}
 					p.addPoint((int) ((x + d_x * 0.2) * TILE_SIZE), (int) ((y + d_y * 0.2) * TILE_SIZE));
 				}
@@ -459,8 +494,10 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						case D:
 						case T:
 						case C:
+						case B:
+						case X:
 						case _: c = new Color(59, 39, 29); break;
-						case G: continue lp; //c = new Color(37, 59, 29); break;
+						case G: continue lp;
 						case I:
 						case W: c = new Color(101, 81, 72); break;
 					}
@@ -493,6 +530,19 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							g.fillRect(x * TILE_SIZE + 22, y * TILE_SIZE + 2, 16, 16);
 							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 22, 16, 16);
 							g.fillRect(x * TILE_SIZE + 22, y * TILE_SIZE + 22, 16, 16);
+							break;
+						case B:
+						case X:
+							g.setColor(new Color(115, 63, 45));
+							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 6, 36, 28);
+							g.setColor(new Color(57, 32, 22));
+							g.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 8, 32, 10);
+							g.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 20, 32, 10);
+					}
+					if (t_type[y][x] == B) {
+						g.setColor(new Color(142, 130, 123));
+						g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 9, 30, 8);
+						g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 21, 30, 8);
 					}
 				}}
 				// players
@@ -524,7 +574,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
 				// particles
-				for (int i = 0; i < 80; i++) {
+				for (int i = 0; i < 120; i++) {
+					if (i == 80) { g.setColor(Color.RED); }
 					if (particles[i * 5] > 0) {
 						g.fillOval((int) particles[i * 5 + 1], (int) particles[i * 5 + 2], (int) particles[i * 5] + 2, (int) particles[i * 5] + 2);
 						particles[i * 5 + 1] += particles[i * 5 + 3];
@@ -532,6 +583,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						particles[i * 5]     -= 0.3;
 					}
 				}
+				g.setColor(Color.YELLOW);
 				g.setFont(new Font("Verdana", Font.PLAIN, 20));
 				g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 				if (b_fatigue > 400) {
@@ -546,27 +598,33 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						g.drawRect(761, i * 40 - 39, 37, 37);
 					}
 				}
-				// key
 				g.setColor(Color.LIGHT_GRAY);
-				g.fillOval(765, 15, 8, 10);
-				g.fillRect(769, 19, 25, 2);
-				g.fillRect(786, 19, 2, 6);
-				g.fillRect(790, 19, 2, 8);
+				if (inventory[KEY]) {
+					g.fillOval(765, 15, 8, 10);
+					g.fillRect(769, 19, 25, 2);
+					g.fillRect(786, 19, 2, 6);
+					g.fillRect(790, 19, 2, 8);
+				}
 				// gun
-				g.fillRect(765, 53, 30, 6);
-				g.setColor(new Color(115, 63, 45));
-				g.fillRect(767, 59, 8, 14);
+				if (inventory[GUN]) {
+					g.fillRect(765, 53, 30, 6);
+					g.drawString("" + bullets, 782, 76);
+					g.setColor(new Color(115, 63, 45));
+					g.fillRect(767, 59, 8, 14);
+				}
 				// cross
-				g.fillRect(778, 85, 4, 30);
-				g.fillRect(770, 94, 20, 4);
+				if (inventory[CROSS]) {
+					g.setColor(new Color(115, 63, 45));
+					g.fillRect(778, 85, 4, 30);
+					g.fillRect(770, 94, 20, 4);
+				}
 				
 				g.setColor(Color.WHITE);
-				g.drawString("" + bullets, 782, 76);
 				g.fillRect(760, 600 - b_exhaustion / 50, 40, b_exhaustion / 50);
 				g.drawString(msg, 40, 280);
 				g.drawString(msg2, 40, 320);
 				strategy.show();
-				try { Thread.sleep(20); } catch (Exception e) {}
+				try { Thread.sleep(15); } catch (Exception e) {}
 				if (msgWait-- < 0) {
 					msg2 = "";
 					if (game_over) {
