@@ -59,8 +59,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	static final double V_SPEED = 0.05;
 	static final double V_HURT_SPEED = 0.03;	
 	static final int V_COOLDOWN = 30;
-	static final int[] Y_VANTAGES = {4,8,13,10, 5,1,14}; // 7 vantages
-	static final int[] X_VANTAGES = {3,9, 9, 2,12,7, 6};
+	static final int[] Y_VANTAGES = {0, 4, 2, 4, 5, 9, 9 , 12, 7 , 5 , 0 , 14}; // 12 vantages
+	static final int[] X_VANTAGES = {0, 3, 7, 7, 9, 5, 10, 14, 12, 15, 18, 6 };
 	
 	// map
 	static byte[] T_TO_HP = {
@@ -92,6 +92,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 
 	@Override
 	public void run() {
+		int lvl = 1;
 		game: while(true) {
 			int msgWait = -1;
 			int tick = -1;
@@ -108,7 +109,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			double b_x = 14.5;
 			double b_y = 7.5;
 			int inventory_ptr = 0;
-			boolean[] inventory = new boolean[4];
+			boolean[] inventory = new boolean[128];
 			int bullets = 6;
 
 			// v stats
@@ -132,22 +133,25 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			boolean dawn = false;
 
 			// map
+			// y 0, 4, 2, 4, 5, 9, 9 , 12, 7 , 5 , 0 , 14
+			// x 0, 3, 7, 7, 9, 5, 10, 14, 12, 15, 18, 6
 			byte[][] t_type = {
-				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, I, W, I, W, W, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, _, B, _, _, _, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, O, _, _, _, T, _, I, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, B, _, C, _, _, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, _, _, _, _, _, W, G, G, G, G, G, G, G, G, G},
-				{G, G, G, W, I, W, W, O, W, W, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, W, _, C, _, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, I, B, _, _, I, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, W, W, D, W, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, G, W, _, _, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, G, W, B, _, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, G, W, W, O, W, G, G, G, G, G, G, G, G},
-				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}
+			//   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18
+				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 0
+				{G, W, I, W, I, W, W, W, W, W, W, W, G, G, G, G, G, G, G}, // 1
+				{G, W, _, _, _, _, O, _, _, _, B, W, G, G, W, W, W, W, G}, // 2
+				{G, O, _, T, _, B, W, W, W, W, W, W, G, G, W, _, _, W, G}, // 3
+				{G, W, _, _, _, _, O, _, W, _, _, W, G, G, W, B, _, W, G}, // 4
+				{G, W, W, D, W, W, W, _, O, _, C, I, G, G, W, _, _, W, G}, // 5
+				{G, W, _, _, _, _, W, _, W, _, _, W, G, G, W, O, W, W, G}, // 6
+				{G, I, _, C, _, _, W, _, W, W, D, W, G, G, G, G, G, G, G}, // 7
+				{G, W, _, T, _, B, W, _, W, _, _, W, G, G, G, G, G, G, G}, // 8
+				{G, W, _, C, _, _, O, _, W, T, _, I, G, G, G, G, G, G, G}, // 9
+				{G, I, _, _, _, _, W, _, O, _, _, W, W, W, I, W, G, G, G}, // 10
+				{G, W, _, B, _, _, W, _, W, _, _, D, _, _, _, W, G, G, G}, // 11
+				{G, W, W, W, I, W, W, O, W, W, I, W, _, B, _, O, G, G, G}, // 12
+				{G, G, G, G, G, G, G, G, G, G, G, W, W, W, W, W, G, G, G}, // 13
+				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 14
 			};
 			byte[][] t_hp = new byte[T_H][T_W];
 
@@ -227,7 +231,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 										if (b_push >= 80) {
 											b_push = 0;
 											t_type[ny][nx] = X;
-											int found = r.nextInt(3) + 1;
+											int found = r.nextInt(2 + lvl) + 1;
 											if (inventory[found]) {
 												msg2 = "You found nothing.";
 											} else {
@@ -327,8 +331,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							}
 							if (!v_seen) {
 								// don't know where b is, pick vantage point
-								v_b_y = Y_VANTAGES[vantage_index % 7];
-								v_b_x = X_VANTAGES[(vantage_index++) % 7];
+								v_b_y = Y_VANTAGES[vantage_index % 12];
+								v_b_x = X_VANTAGES[(vantage_index++) % 12];
 							}
 						} else {
 							dy = Y_DIRS[dir] * sp;
@@ -379,15 +383,16 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						}
 
 						if (tick % 1500 == 0) {
-							msg2 = ((6000 - tick) / 1500) + " minutes until dawn";
+							msg2 = ((1500 * lvl * lvl - tick) / 1500) + " minutes until dawn";
 							msgWait = 200;
 						}
 
-						if (tick > 6000) {
+						if (tick > 1500 * lvl * lvl) {
 							game_over = true;
 							msg2 = "VICTORY!";
 							dawn = true;
 							msgWait = 300;
+							lvl++;
 							for (int i = 0; i < 80; i++) {
 								particles[i * 5] = r.nextDouble() * 10;
 								particles[i * 5 + 1] = v_x * TILE_SIZE;
@@ -579,6 +584,8 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				}
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
+				// qqDPS
+				//g.drawOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 				// particles
 				for (int i = 0; i < 120; i++) {
 					if (i == 80) { g.setColor(Color.RED); }
