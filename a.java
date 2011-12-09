@@ -231,8 +231,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 										if (b_push >= 80) {
 											b_push = 0;
 											t_type[ny][nx] = X;
-											int found = r.nextInt(2 + lvl) + 1;
-											if (inventory[found]) {
+											int found = r.nextInt(2) + 1;
+											if (r.nextInt(lvl + 1) > 1 ||inventory[found]) {
 												msg2 = "You found nothing.";
 											} else {
 												msg2 = "You found a " + ITEM_NAMES[found] + "!";
@@ -528,7 +528,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 							g.fillRect(x * TILE_SIZE + 25, y * TILE_SIZE + 17, 2, 10);
 							break;
 						case D:
-							g.setColor(new Color(142, 130, 123));
+							g.setColor(new Color(194, 177, 168));
 							g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 						case O:
 							g.setColor(new Color(87, 63, 51));
