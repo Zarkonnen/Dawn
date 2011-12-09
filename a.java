@@ -1,6 +1,6 @@
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Font;
+//import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import javax.swing.JApplet;
 
-public class Main extends JApplet implements Runnable, KeyListener, MouseListener, MouseMotionListener {
+public class a extends JApplet implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 	boolean key[] = new boolean[65535];
 	boolean click = false;
 	int my, mx;
@@ -323,9 +323,9 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 						}
 						double dy = 0;
 						double dx = 0;
-						double dist = Math.sqrt((b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x));
+						double dist = (b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x);//);
 						if (dir == -1) {
-							if (dist > P_R) {
+							if (dist > P_R * P_R) {
 								dy = (b_y - v_y) / dist * sp;
 								dx = (b_x - v_x) / dist * sp;
 							}
@@ -435,7 +435,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							x += xDist * 1.001;
 							y += (xDist / d_x * d_y) * 1.001;
 						}
-
+						
 						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 						// sparkles & shooting & things
 						if (((bullets > 0 && inventory_ptr == GUN) || (inventory_ptr == CROSS)) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
@@ -568,9 +568,10 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					g.fillRect((int) (b_x * TILE_SIZE) + 4, (int) (b_y * TILE_SIZE) - 4, 1, 6);
 					// body
 					g.setColor(Color.RED);
-					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 8);
+					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 18);
+					/*g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 8);
 					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
-					g.fillRect((int) (b_x * TILE_SIZE) + 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
+					g.fillRect((int) (b_x * TILE_SIZE) + 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);*/
 					if (v_dmg > 0) {
 						g.fillOval((int) (v_x * TILE_SIZE), (int) (v_y * TILE_SIZE), 3, 7);
 					}
@@ -597,7 +598,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 					}
 				}
 				g.setColor(Color.YELLOW);
-				g.setFont(new Font("Verdana", Font.PLAIN, 20));
+				//g.setFont(new Font("Verdana", Font.PLAIN, 20));
 				g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 				g.setColor(Color.ORANGE);
 				g.fillRect(760, 450, 40, 1);
