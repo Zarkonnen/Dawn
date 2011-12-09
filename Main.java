@@ -93,11 +93,12 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 	@Override
 	public void run() {
 		game: while(true) {
-			int msgWait = 0;
+			int msgWait = -1;
 			int tick = -1;
 			String msg = "";
-			String msg2 = "";
+			String msg2 = "Press space to start.";
 			Random r = new Random();
+			boolean playing = false;
 
 			// b stats
 			int b_cooldown = 0;
@@ -156,240 +157,244 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 			}}
 
 			while (true) {
-				if (!game_over) {
-					tick++;
-					b_cooldown--;
-					v_cooldown--;
-					v_dmg--;
-					msg = "";
-					// inventory
-					for (int i = 1; i < 4; i++) {
-						if (key[KeyEvent.VK_1 + i - 1] && inventory[i]) { inventory_ptr = i; }
-					}
-					// b movement
-					double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
-					boolean mv = false;
-					for (int i = 0; i < 4; i++) {
-						if (key[DIR_KEYS[i]]) {
-							b_y += Y_DIRS[i] * sp;
-							b_x += X_DIRS[i] * sp;
-							// Borders
-							b_y = b_y < P_R ? P_R : b_y;
-							b_y = b_y > (T_H - P_R) ? (T_H - P_R) : b_y;
-							b_x = b_x < P_R ? P_R : b_x;
-							b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
-							// Solid things
-							if (t_type[(int) b_y][(int) b_x] >= SOLIDS && t_type[(int) b_y][(int) b_x] < TRANSPARENTS) {
-								if (b_push > 16) {
-									int ny = ((int) b_y) + Y_DIRS[i];
-									int nx = ((int) b_x) + X_DIRS[i];
-									if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] == _ && !(ny == (int) v_y && nx == (int) v_x)) {
-										t_type[ny][nx] = t_type[(int) b_y][(int) b_x];
-										t_hp[ny][nx] = t_hp[(int) b_y][(int) b_x];
-										t_type[(int) b_y][(int) b_x] = _;
-										t_hp[(int) b_y][(int) b_x] = 0;
-										b_push = 0;
+				if (!playing) {
+					if (key[KeyEvent.VK_SPACE]) { playing = true; }
+				} else {
+					if (!game_over) {
+						tick++;
+						b_cooldown--;
+						v_cooldown--;
+						v_dmg--;
+						msg = "";
+						// inventory
+						for (int i = 1; i < 4; i++) {
+							if (key[KeyEvent.VK_1 + i - 1] && inventory[i]) { inventory_ptr = i; }
+						}
+						// b movement
+						double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
+						boolean mv = false;
+						for (int i = 0; i < 4; i++) {
+							if (key[DIR_KEYS[i]]) {
+								b_y += Y_DIRS[i] * sp;
+								b_x += X_DIRS[i] * sp;
+								// Borders
+								b_y = b_y < P_R ? P_R : b_y;
+								b_y = b_y > (T_H - P_R) ? (T_H - P_R) : b_y;
+								b_x = b_x < P_R ? P_R : b_x;
+								b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
+								// Solid things
+								if (t_type[(int) b_y][(int) b_x] >= SOLIDS && t_type[(int) b_y][(int) b_x] < TRANSPARENTS) {
+									if (b_push > 16) {
+										int ny = ((int) b_y) + Y_DIRS[i];
+										int nx = ((int) b_x) + X_DIRS[i];
+										if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] == _ && !(ny == (int) v_y && nx == (int) v_x)) {
+											t_type[ny][nx] = t_type[(int) b_y][(int) b_x];
+											t_hp[ny][nx] = t_hp[(int) b_y][(int) b_x];
+											t_type[(int) b_y][(int) b_x] = _;
+											t_hp[(int) b_y][(int) b_x] = 0;
+											b_push = 0;
+										}
+									} else {
+										b_push++;
+										msg = "Pushing...";
 									}
 								} else {
-									b_push++;
-									msg = "Pushing...";
+									b_push = 0;
 								}
-							} else {
-								b_push = 0;
+								b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
+								b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
+								mv = true;
 							}
-							b_y = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_y - Y_DIRS[i] * sp : b_y;
-							b_x = t_type[(int) b_y][(int) b_x] >= SOLIDS ? b_x - X_DIRS[i] * sp : b_x;
-							mv = true;
 						}
-					}
 
-					if (mv && b_fatigue <= 600) {
-						b_fatigue++;
-						b_exhaustion++;
-					}
-					if (!mv && b_fatigue > b_exhaustion / 50) {
-						b_fatigue--;
-					}
-
-					// Interaction
-					for (int i = 0; i < 4; i++) {
-						int ny = ((int) b_y) + Y_DIRS[i];
-						int nx = ((int) b_x) + X_DIRS[i];
-						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
-						switch (t_type[ny][nx]) {
-							case B:
-								msg = "Hold down X to search drawers.";
-								if (key[KeyEvent.VK_X]) {
-									if (b_push >= 80) {
-										b_push = 0;
-										t_type[ny][nx] = X;
-										int found = r.nextInt(3) + 1;
-										if (inventory[found]) {
-											msg2 = "You found nothing.";
-										} else {
-											msg2 = "You found a " + ITEM_NAMES[found] + "!";
-											inventory[found] = true;
-											inventory_ptr = found;
-										}
-										msgWait = 100;
-									} else {
-										msg = "Searching...";
-										b_push++;
-									}
-								}
-								break;
-							case O:
-								if (inventory_ptr == KEY) {
-									msg = "Press space to lock door.";
-									if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
-										t_type[ny][nx] = D;
-										b_cooldown = B_COOLDOWN;
-									}
-								}
-								break;
-							case D:
-								if (inventory_ptr == KEY) {
-									msg = "Press space to open door.";
-									if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
-										t_type[ny][nx] = O;
-										b_cooldown = B_COOLDOWN;
-									}
-								}
-								break;
+						if (mv && b_fatigue <= 600) {
+							b_fatigue++;
+							b_exhaustion++;
 						}
-					}
+						if (!mv && b_fatigue > b_exhaustion / 50) {
+							b_fatigue--;
+						}
 
-					// V-map update
-					for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-						v_map[y][x] = 100000;
-					}}
-					LinkedList<Point> queue = new LinkedList<Point>();
-					v_map[(int) v_b_y][(int) v_b_x] = 0;
-					queue.add(new Point((int) v_b_x, (int) v_b_y));
-					while (!queue.isEmpty()) {
-						Point p = queue.pop();
+						// Interaction
 						for (int i = 0; i < 4; i++) {
-							int py2 = p.y + Y_DIRS[i];
-							int px2 = p.x + X_DIRS[i];
-							if (
-								py2 >= 0 &&
-								px2 >= 0 &&
-								py2 < T_H &&
-								px2 < T_W)
-							{
-								int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] : 0) + v_repel_map[py2][px2];
-								if (newV < v_map[py2][px2]) {
-									v_map[py2][px2] = newV;
-									queue.add(new Point(px2, py2));
+							int ny = ((int) b_y) + Y_DIRS[i];
+							int nx = ((int) b_x) + X_DIRS[i];
+							if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
+							switch (t_type[ny][nx]) {
+								case B:
+									msg = "Hold down X to search drawers.";
+									if (key[KeyEvent.VK_X]) {
+										if (b_push >= 80) {
+											b_push = 0;
+											t_type[ny][nx] = X;
+											int found = r.nextInt(3) + 1;
+											if (inventory[found]) {
+												msg2 = "You found nothing.";
+											} else {
+												msg2 = "You found a " + ITEM_NAMES[found] + "!";
+												inventory[found] = true;
+												inventory_ptr = found;
+											}
+											msgWait = 100;
+										} else {
+											msg = "Searching...";
+											b_push++;
+										}
+									}
+									break;
+								case O:
+									if (inventory_ptr == KEY) {
+										msg = "Press space to lock door.";
+										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
+											t_type[ny][nx] = D;
+											b_cooldown = B_COOLDOWN;
+										}
+									}
+									break;
+								case D:
+									if (inventory_ptr == KEY) {
+										msg = "Press space to open door.";
+										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
+											t_type[ny][nx] = O;
+											b_cooldown = B_COOLDOWN;
+										}
+									}
+									break;
+							}
+						}
+
+						// V-map update
+						for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+							v_map[y][x] = 100000;
+						}}
+						LinkedList<Point> queue = new LinkedList<Point>();
+						v_map[(int) v_b_y][(int) v_b_x] = 0;
+						queue.add(new Point((int) v_b_x, (int) v_b_y));
+						while (!queue.isEmpty()) {
+							Point p = queue.pop();
+							for (int i = 0; i < 4; i++) {
+								int py2 = p.y + Y_DIRS[i];
+								int px2 = p.x + X_DIRS[i];
+								if (
+									py2 >= 0 &&
+									px2 >= 0 &&
+									py2 < T_H &&
+									px2 < T_W)
+								{
+									int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] : 0) + v_repel_map[py2][px2];
+									if (newV < v_map[py2][px2]) {
+										v_map[py2][px2] = newV;
+										queue.add(new Point(px2, py2));
+									}
 								}
 							}
 						}
-					}
-					for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-						v_repel_map[y][x] = 0;
-					}}
+						for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+							v_repel_map[y][x] = 0;
+						}}
 
-					// V movement
-					int dir = -1;
-					int least = v_map[((int) v_y)][((int) v_x)];
-					sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
-					for (int i = 0; i < 8; i++) {
-						int ny = ((int) v_y) + Y_DIRS[i];
-						int nx = ((int) v_x) + X_DIRS[i];
-						int ny2 = (int) (v_y + Y_DIRS[i] * sp);
-						int nx2 = (int) (v_x + X_DIRS[i] * sp);
-						if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
-						// Prevent slipping through diagonal gaps.
-						if (t_type[ny2][nx2] < SOLIDS && t_type[ny2][(int) v_x] >= SOLIDS && t_type[(int) v_y][nx2] >= SOLIDS) {
-							continue;
-						}
-						
-						int value = v_map[ny][nx];
-						if (ny2 != (int) v_y || nx2 != (int) v_x) {
-							value = Math.max(value, v_map[ny2][nx2]);
-						}
-						if (value < least) {
-							dir = i;
-							least = value;
-						}
-					}
-					double dy = 0;
-					double dx = 0;
-					double dist = Math.sqrt((b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x));
-					if (dir == -1) {
-						if (dist > P_R) {
-							dy = (b_y - v_y) / dist * sp;
-							dx = (b_x - v_x) / dist * sp;
-						}
-						if (!v_seen) {
-							// don't know where b is, pick vantage point
-							v_b_y = Y_VANTAGES[vantage_index % 7];
-							v_b_x = X_VANTAGES[(vantage_index++) % 7];
-						}
-					} else {
-						dy = Y_DIRS[dir] * sp;
-						dx = X_DIRS[dir] * sp;
-					}
-					v_y += dy;
-					v_y = v_y < P_R ? P_R : v_y;
-					v_y = v_y > (T_H - P_R) ? (T_H - P_R) : v_y;
-					v_x += dx;
-					v_x = v_x < P_R ? P_R : v_x;
-					v_x = v_x > (T_W - P_R) ? (T_W - P_R) : v_x;
-					// Walls
-					if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
-						if (v_cooldown <= 0) {
-							t_hp[(int) v_y][(int) v_x] -= v_dmg > 0 ? 1 : 2;
-							for (int i = 20; i < 40; i++) {
-								particles[i * 5] = r.nextDouble() * 5;
-								particles[i * 5 + 1] = ((int) v_x) * TILE_SIZE + TILE_SIZE / 2;
-								particles[i * 5 + 2] = ((int) v_y) * TILE_SIZE + TILE_SIZE / 2;
-								particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
-								particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
+						// V movement
+						int dir = -1;
+						int least = v_map[((int) v_y)][((int) v_x)];
+						sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
+						for (int i = 0; i < 8; i++) {
+							int ny = ((int) v_y) + Y_DIRS[i];
+							int nx = ((int) v_x) + X_DIRS[i];
+							int ny2 = (int) (v_y + Y_DIRS[i] * sp);
+							int nx2 = (int) (v_x + X_DIRS[i] * sp);
+							if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
+							// Prevent slipping through diagonal gaps.
+							if (t_type[ny2][nx2] < SOLIDS && t_type[ny2][(int) v_x] >= SOLIDS && t_type[(int) v_y][nx2] >= SOLIDS) {
+								continue;
 							}
-							v_cooldown = V_COOLDOWN;
-							if (t_hp[(int) v_y][(int) v_x] <= 0) {
-								t_type[(int) v_y][(int) v_x] = _;
+
+							int value = v_map[ny][nx];
+							if (ny2 != (int) v_y || nx2 != (int) v_x) {
+								value = Math.max(value, v_map[ny2][nx2]);
+							}
+							if (value < least) {
+								dir = i;
+								least = value;
 							}
 						}
-						v_y -= dy;
-						v_x -= dx;
-					}
-
-					if (dist < P_R * 2 && v_cooldown <= 0) {
-						v_cooldown = 20;
-						b_fatigue += v_dmg > 0 ? 50 : 100;
-						b_exhaustion += v_dmg > 0 ? 50 : 100;
-						for (int i = 80; i < 120; i++) {
-							particles[i * 5] = r.nextDouble() * 4;
-							particles[i * 5 + 1] = b_x * TILE_SIZE + 1;
-							particles[i * 5 + 2] = b_y * TILE_SIZE - 5;
-							particles[i * 5 + 3] = r.nextDouble() * 2 - 1;
-							particles[i * 5 + 4] = r.nextDouble() * 3 - 1;
+						double dy = 0;
+						double dx = 0;
+						double dist = Math.sqrt((b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x));
+						if (dir == -1) {
+							if (dist > P_R) {
+								dy = (b_y - v_y) / dist * sp;
+								dx = (b_x - v_x) / dist * sp;
+							}
+							if (!v_seen) {
+								// don't know where b is, pick vantage point
+								v_b_y = Y_VANTAGES[vantage_index % 7];
+								v_b_x = X_VANTAGES[(vantage_index++) % 7];
+							}
+						} else {
+							dy = Y_DIRS[dir] * sp;
+							dx = X_DIRS[dir] * sp;
 						}
-						if (b_fatigue >= 600) {
+						v_y += dy;
+						v_y = v_y < P_R ? P_R : v_y;
+						v_y = v_y > (T_H - P_R) ? (T_H - P_R) : v_y;
+						v_x += dx;
+						v_x = v_x < P_R ? P_R : v_x;
+						v_x = v_x > (T_W - P_R) ? (T_W - P_R) : v_x;
+						// Walls
+						if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
+							if (v_cooldown <= 0) {
+								t_hp[(int) v_y][(int) v_x] -= v_dmg > 0 ? 1 : 2;
+								for (int i = 20; i < 40; i++) {
+									particles[i * 5] = r.nextDouble() * 5;
+									particles[i * 5 + 1] = ((int) v_x) * TILE_SIZE + TILE_SIZE / 2;
+									particles[i * 5 + 2] = ((int) v_y) * TILE_SIZE + TILE_SIZE / 2;
+									particles[i * 5 + 3] = r.nextDouble() * 4 - 2;
+									particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
+								}
+								v_cooldown = V_COOLDOWN;
+								if (t_hp[(int) v_y][(int) v_x] <= 0) {
+									t_type[(int) v_y][(int) v_x] = _;
+								}
+							}
+							v_y -= dy;
+							v_x -= dx;
+						}
+
+						if (dist < P_R * 2 && v_cooldown <= 0) {
+							v_cooldown = 20;
+							b_fatigue += v_dmg > 0 ? 50 : 100;
+							b_exhaustion += v_dmg > 0 ? 50 : 100;
+							for (int i = 80; i < 120; i++) {
+								particles[i * 5] = r.nextDouble() * 4;
+								particles[i * 5 + 1] = b_x * TILE_SIZE + 1;
+								particles[i * 5 + 2] = b_y * TILE_SIZE - 5;
+								particles[i * 5 + 3] = r.nextDouble() * 2 - 1;
+								particles[i * 5 + 4] = r.nextDouble() * 3 - 1;
+							}
+							if (b_fatigue >= 600) {
+								game_over = true;
+								msg2 = "GAME OVER";
+								msgWait = 100;
+							}
+						}
+
+						if (tick % 1500 == 0) {
+							msg2 = ((6000 - tick) / 1500) + " minutes until dawn";
+							msgWait = 200;
+						}
+
+						if (tick > 6000) {
 							game_over = true;
-							msg2 = "GAME OVER";
-							msgWait = 100;
-						}
-					}
-					
-					if (tick % 1500 == 0) {
-						msg2 = ((6000 - tick) / 1500) + " minutes until dawn";
-						msgWait = 200;
-					}
-					
-					if (tick > 6000) {
-						game_over = true;
-						msg2 = "VICTORY!";
-						dawn = true;
-						msgWait = 400;
-						for (int i = 0; i < 80; i++) {
-							particles[i * 5] = r.nextDouble() * 10;
-							particles[i * 5 + 1] = v_x * TILE_SIZE;
-							particles[i * 5 + 2] = v_y * TILE_SIZE;
-							particles[i * 5 + 3] = r.nextDouble() * 10 - 5;
-							particles[i * 5 + 4] = r.nextDouble() * 10 - 5;
+							msg2 = "VICTORY!";
+							dawn = true;
+							msgWait = 300;
+							for (int i = 0; i < 80; i++) {
+								particles[i * 5] = r.nextDouble() * 10;
+								particles[i * 5 + 1] = v_x * TILE_SIZE;
+								particles[i * 5 + 2] = v_y * TILE_SIZE;
+								particles[i * 5 + 3] = r.nextDouble() * 10 - 5;
+								particles[i * 5 + 4] = r.nextDouble() * 10 - 5;
+							}
 						}
 					}
 				}
@@ -627,7 +632,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 				g.drawString(msg2, 40, 320);
 				strategy.show();
 				try { Thread.sleep(15); } catch (Exception e) {}
-				if (msgWait-- < 0) {
+				if (--msgWait == 0) {
 					msg2 = "";
 					if (game_over) {
 						continue game;
