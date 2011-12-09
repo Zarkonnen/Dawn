@@ -158,13 +158,13 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			
 			// Place players
 			while (true) {
-				b_y = 3 + r.nextInt(9);
-				b_x = 3 + r.nextInt(13);
+				b_y = 3.5 + r.nextInt(9);
+				b_x = 3.5 + r.nextInt(13);
 				if (t_type[(int) b_y][(int) b_x] >= SOLIDS) {
 					continue;
 				}
-				v_y = b_y + 3;
-				v_x = b_x + r.nextInt(3);
+				v_y = b_y + (r.nextBoolean() ? r.nextInt(2) + 3 : - r.nextInt(2) - 3);
+				v_x = b_x - 3 + r.nextInt(6);
 				if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
 					continue;
 				}
