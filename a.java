@@ -49,9 +49,9 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	static final int GUN_V_DMG = 500;
 	
 	// inventory
-	static final int KEY = 1;
-	static final int GUN = 2;
-	static final String[] ITEM_NAMES = { "", "key", "gun" };
+	static final int KEY = 0;
+	static final int GUN = 1;
+	static final String[] ITEM_NAMES = { "key", "gun" };
 	
 	// v stats
 	static final double V_SPEED = 0.05;
@@ -106,8 +106,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			int b_push = 0;
 			double b_x = 0;
 			double b_y = 0;
-			int inventory_ptr = 0;
-			boolean[] inventory = new boolean[128];
+			boolean[] inventory = new boolean[2];
 			int bullets = 6;
 
 			// v stats
@@ -164,8 +163,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				if (t_type[(int) b_y][(int) b_x] >= SOLIDS) {
 					continue;
 				}
-				v_y = b_y + 2;
-				v_x = b_x + r.nextInt(2);
+				v_y = b_y + 3;
+				v_x = b_x + r.nextInt(3);
 				if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
 					continue;
 				}
@@ -193,10 +192,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						v_cooldown--;
 						v_dmg--;
 						msg = "";
-						// inventory
-						for (int i = 1; i < 3; i++) {
-							if (key[KeyEvent.VK_1 + i - 1] && inventory[i]) { inventory_ptr = i; }
-						}
 						// b movement
 						double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
 						boolean mv = false;
@@ -249,18 +244,17 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 							if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
 							switch (t_type[ny][nx]) {
 								case B:
-									msg = "Hold down X to search drawers.";
-									if (key[KeyEvent.VK_X]) {
+									msg = "Hold down E to search drawers.";
+									if (key[KeyEvent.VK_E]) {
 										if (b_push >= 80) {
 											b_push = 0;
 											t_type[ny][nx] = X;
-											int found = r.nextInt(2) + 1;
-											if (r.nextInt(lvl + 3) > 3 || inventory[found]) {
+											int found = r.nextInt(2);
+											if (r.nextInt(lvl + 4) > 3 || inventory[found]) {
 												msg2 = "You found nothing.";
 											} else {
 												msg2 = "You found a " + ITEM_NAMES[found] + "!";
 												inventory[found] = true;
-												inventory_ptr = found;
 											}
 											msgWait = 100;
 										} else {
@@ -270,7 +264,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 									}
 									break;
 								case O:
-									if (inventory_ptr == KEY) {
+									if (inventory[KEY]) {
 										msg = "Press space to lock door.";
 										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
 											t_type[ny][nx] = D;
@@ -279,7 +273,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 									}
 									break;
 								case D:
-									if (inventory_ptr == KEY) {
+									if (inventory[KEY]) {
 										msg = "Press space to open door.";
 										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
 											t_type[ny][nx] = O;
@@ -458,7 +452,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						
 						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 						// sparkles & shooting & things
-						if ((bullets > 0 && inventory_ptr == GUN) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
+						if ((bullets > 0 && inventory[GUN]) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
 							if (r.nextInt(16) == 0) {
 								double offset = r.nextDouble() * 40;
 								particles[sprk * 5] = 1;
@@ -468,7 +462,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								particles[sprk * 5 + 4] = 0;
 								sprk = (sprk + 1) % 20;
 							}
-							if (inventory_ptr == GUN) {
+							if (inventory[GUN]) {
 								if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) {
 									blocked = true;
 									if (bullets > 0 && click && b_cooldown <= 0) {
@@ -626,12 +620,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				}
 				
 				// inventory
-				g.setColor(Color.YELLOW);
-				for (int i = 0; i < 3; i++) {
-					if (i == inventory_ptr) {
-						g.drawRect(761, i * 40 - 39, 37, 37);
-					}
-				}
 				g.setColor(Color.LIGHT_GRAY);
 				if (inventory[KEY]) {
 					g.fillOval(765, 15, 8, 10);
