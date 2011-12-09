@@ -51,9 +51,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	// inventory
 	static final int KEY = 1;
 	static final int GUN = 2;
-	static final int CROSS = 3;
-	static final int REPEL = 10;
-	static final String[] ITEM_NAMES = { "", "key", "gun", "crucifix" };
+	static final String[] ITEM_NAMES = { "", "key", "gun" };
 	
 	// v stats
 	static final double V_SPEED = 0.05;
@@ -106,8 +104,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			int b_fatigue = 0;
 			int b_exhaustion = 0;
 			int b_push = 0;
-			double b_x = 14.5;
-			double b_y = 7.5;
+			double b_x = 0;
+			double b_y = 0;
 			int inventory_ptr = 0;
 			boolean[] inventory = new boolean[128];
 			int bullets = 6;
@@ -115,11 +113,10 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			// v stats
 			int v_cooldown = 0;
 			int v_dmg = 0;
-			double v_x = 13.5;
-			double v_y = 11.5;
-			double v_b_x = 14.5;
-			double v_b_y = 7.5;
-			int[][] v_repel_map = new int[T_H][T_W];
+			double v_x = 0;
+			double v_y = 0;
+			double v_b_x = 0;
+			double v_b_y = 0;
 			int[][] v_map = new int[T_H][T_W];
 			int vantage_index = 0;
 			boolean v_seen = false;
@@ -159,7 +156,33 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 				t_hp[y][x] = T_TO_HP[t_type[y][x]];
 			}}
-
+			
+			// Place players
+			while (true) {
+				b_y = 3 + r.nextInt(9);
+				b_x = 3 + r.nextInt(13);
+				if (t_type[(int) b_y][(int) b_x] >= SOLIDS) {
+					continue;
+				}
+				v_y = b_y + 2;
+				v_x = b_x + r.nextInt(2);
+				if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
+					continue;
+				}
+				//while (true) {
+					/*v_y = r.nextInt(15);
+					v_x = r.nextInt(19);
+					double dist = (b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x);
+					if (t_type[(int) v_y][(int) v_x] >= SOLIDS || dist > 16 || dist < 4) {
+						continue;
+					}*/
+					//break;
+				//}
+				v_b_y = b_y;
+				v_b_x = b_x;
+				break;
+			}
+			
 			while (true) {
 				if (!playing) {
 					if (key[KeyEvent.VK_SPACE]) { playing = true; }
@@ -171,7 +194,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						v_dmg--;
 						msg = "";
 						// inventory
-						for (int i = 1; i < 4; i++) {
+						for (int i = 1; i < 3; i++) {
 							if (key[KeyEvent.VK_1 + i - 1] && inventory[i]) { inventory_ptr = i; }
 						}
 						// b movement
@@ -232,7 +255,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 											b_push = 0;
 											t_type[ny][nx] = X;
 											int found = r.nextInt(2) + 1;
-											if (r.nextInt(lvl + 1) > 1 ||inventory[found]) {
+											if (r.nextInt(lvl + 3) > 3 || inventory[found]) {
 												msg2 = "You found nothing.";
 											} else {
 												msg2 = "You found a " + ITEM_NAMES[found] + "!";
@@ -285,7 +308,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 									py2 < T_H &&
 									px2 < T_W)
 								{
-									int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] : 0) + v_repel_map[py2][px2];
+									int newV = v_map[p.y][p.x] + 1 + (t_type[py2][px2] >= SOLIDS ? t_hp[py2][px2] : 0);
 									if (newV < v_map[py2][px2]) {
 										v_map[py2][px2] = newV;
 										queue.add(new Point(px2, py2));
@@ -293,9 +316,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								}
 							}
 						}
-						for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-							v_repel_map[y][x] = 0;
-						}}
 
 						// V movement
 						int dir = -1;
@@ -378,21 +398,21 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 							if (b_fatigue >= 600) {
 								game_over = true;
 								msg2 = "GAME OVER";
-								msgWait = 200;
+								msgWait = 100;
 							}
 						}
 
 						if (tick % 1500 == 0) {
-							msg2 = ((1500 * lvl * lvl - tick) / 1500) + " minutes until dawn";
+							msg2 = ((3000 * lvl - tick) / 1500) + " minutes until dawn";
 							msgWait = 200;
 						}
 
-						if (tick > 1500 * lvl * lvl) {
+						if (tick > 3000 * lvl) {
 							game_over = true;
 							msg2 = "VICTORY!";
 							dawn = true;
 							msgWait = 300;
-							lvl++;
+							lvl *= 2;
 							for (int i = 0; i < 80; i++) {
 								particles[i * 5] = r.nextDouble() * 10;
 								particles[i * 5 + 1] = v_x * TILE_SIZE;
@@ -438,8 +458,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						
 						if ((int) x < 0 || (int) y < 0 || (int) x >= T_W || (int) y >= T_H) { break; }
 						// sparkles & shooting & things
-						if (((bullets > 0 && inventory_ptr == GUN) || (inventory_ptr == CROSS)) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
-							if (inventory_ptr == CROSS) { v_repel_map[(int) y][(int) x] = REPEL; }
+						if ((bullets > 0 && inventory_ptr == GUN) && Math.abs(ptr - d) < Math.PI / 1000 && !blocked) {
 							if (r.nextInt(16) == 0) {
 								double offset = r.nextDouble() * 40;
 								particles[sprk * 5] = 1;
@@ -608,7 +627,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				
 				// inventory
 				g.setColor(Color.YELLOW);
-				for (int i = 0; i < 4; i++) {
+				for (int i = 0; i < 3; i++) {
 					if (i == inventory_ptr) {
 						g.drawRect(761, i * 40 - 39, 37, 37);
 					}
@@ -626,12 +645,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					g.drawString("" + bullets, 782, 76);
 					g.setColor(new Color(115, 63, 45));
 					g.fillRect(767, 59, 8, 14);
-				}
-				// cross
-				if (inventory[CROSS]) {
-					g.setColor(new Color(115, 63, 45));
-					g.fillRect(778, 85, 4, 30);
-					g.fillRect(770, 94, 20, 4);
 				}
 				
 				g.setColor(Color.WHITE);
