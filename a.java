@@ -131,7 +131,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			// map
 			// y 0, 4, 2, 4, 5, 9, 9 , 12, 7 , 5 , 0 , 14
 			// x 0, 3, 7, 7, 9, 5, 10, 14, 12, 15, 18, 6
-			byte[][] t_type = {
+			int[][] t_type = new int[T_H][T_W]; /*{
 			//   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 0
 				{G, W, I, W, I, W, W, W, W, W, W, W, G, G, G, G, G, G, G}, // 1
@@ -148,11 +148,14 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				{G, W, W, W, I, W, W, O, W, W, I, W, _, B, _, O, G, G, G}, // 12
 				{G, G, G, G, G, G, G, G, G, G, G, W, W, W, W, W, G, G, G}, // 13
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 14
-			};
+			};*/
 			byte[][] t_hp = new byte[T_H][T_W];
+			
+			String map = "111111111111111111118787888888811111111800002000581188881120305888888118008118000020800811850811889888020471180081180000808008118288117040080889811111111803058080081111111180400208307111111117000080200888781111805008080090008111188878828878050211111111111111888881111111111111111111111";
 
 			// Setup
 			for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+				t_type[y][x] = Integer.parseInt(map.substring(y * T_W + x, y * T_W + x + 1));
 				t_hp[y][x] = T_TO_HP[t_type[y][x]];
 			}}
 			
