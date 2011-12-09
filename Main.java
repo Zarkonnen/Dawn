@@ -374,7 +374,7 @@ public class Main extends JApplet implements Runnable, KeyListener, MouseListene
 							if (b_fatigue >= 600) {
 								game_over = true;
 								msg2 = "GAME OVER";
-								msgWait = 100;
+								msgWait = 200;
 							}
 						}
 
