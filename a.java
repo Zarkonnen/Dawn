@@ -450,10 +450,22 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								sprk = (sprk + 1) % 20;
 							}
 							if (inventory[GUN]) {
-								if (t_type[(int) y][(int) x] > SOLIDS || ((int) y == (int) v_y && (int) x == (int) v_x)) {
+								if (t_type[(int) y][(int) x] > SOLIDS || (int) y == (int) v_y && (int) x == (int) v_x) {
 									blocked = true;
 									if (bullets > 0 && click && b_cooldown <= 0) {
-										for (int i = 40; i < 80; i++) {
+										b_cooldown = B_COOLDOWN;
+										int p_start = 40;
+										if (t_type[(int) y][(int) x] > SOLIDS) {
+											t_hp[(int) y][(int) x] -= GUN_DMG;
+											if (t_hp[(int) y][(int) x] <= 0) {
+												t_type[(int) y][(int) x] = _;
+											}
+										}
+										if ((int) y == (int) v_y && (int) x == (int) v_x) {
+											v_dmg = GUN_V_DMG;
+											p_start = 80;
+										}
+										for (int i = p_start; i < p_start + 40; i++) {
 											particles[i * 5] = r.nextDouble() * 5;
 											particles[i * 5 + 1] = x * TILE_SIZE + d_x;
 											particles[i * 5 + 2] = y * TILE_SIZE + d_y;
@@ -461,21 +473,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 											particles[i * 5 + 4] = r.nextDouble() * 4 - 2;
 										}
 										bullets--;
-									}
-								}
-								if (t_type[(int) y][(int) x] >= SOLIDS) {
-									if (bullets > 0 && click && b_cooldown <= 0) {
-										b_cooldown = B_COOLDOWN;
-										t_hp[(int) y][(int) x] -= GUN_DMG;
-										if (t_hp[(int) y][(int) x] <= 0) {
-											t_type[(int) y][(int) x] = _;
-										}
-									}
-								}
-								if (((int) y == (int) v_y && (int) x == (int) v_x)) {
-									if (bullets > 0 && click && b_cooldown <= 0) {
-										b_cooldown = B_COOLDOWN;
-										v_dmg = GUN_V_DMG;
 									}
 								}
 							}
