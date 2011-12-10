@@ -15,6 +15,37 @@ import java.util.Random;
 import javax.swing.JApplet;
 
 public class a extends JApplet implements Runnable, KeyListener, MouseListener, MouseMotionListener {
+	@Override
+	public void keyTyped(KeyEvent e) {}
+	@Override
+	public void mouseClicked(MouseEvent e) {}
+	@Override
+	public void mouseReleased(MouseEvent e) {}
+	@Override
+	public void mouseEntered(MouseEvent e) {}
+	@Override
+	public void mouseExited(MouseEvent e) {}
+	@Override
+	public void mouseDragged(MouseEvent me) {}
+
+	@Override
+	public void mouseMoved(MouseEvent me) {
+		my = me.getY();
+		mx = me.getX();
+	}
+	@Override
+	public void mousePressed(MouseEvent e) {
+		click = true;
+	}
+	@Override
+	public void keyPressed(KeyEvent e) {
+		key[((KeyEvent) e).getKeyCode()] = true;
+	}
+	@Override
+	public void keyReleased(KeyEvent e) {
+		key[((KeyEvent) e).getKeyCode()] = false;
+	}
+	
 	boolean key[] = new boolean[65535];
 	boolean click = false;
 	int my, mx;
@@ -645,40 +676,5 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				}
 			}
 		}
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		key[((KeyEvent) e).getKeyCode()] = true;
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		key[((KeyEvent) e).getKeyCode()] = false;
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {}
-	@Override
-	public void mousePressed(MouseEvent e) {
-		click = true;
-	}
-	@Override
-	public void mouseReleased(MouseEvent e) {}
-	@Override
-	public void mouseEntered(MouseEvent e) {}
-	@Override
-	public void mouseExited(MouseEvent e) {}
-
-	@Override
-	public void mouseDragged(MouseEvent me) {}
-
-	@Override
-	public void mouseMoved(MouseEvent me) {
-		my = me.getY();
-		mx = me.getX();
 	}
 }
