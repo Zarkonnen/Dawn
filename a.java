@@ -61,17 +61,19 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	static final int[] DIR_KEYS = { KeyEvent.VK_A, KeyEvent.VK_W, KeyEvent.VK_D, KeyEvent.VK_S };
 	
 	// Tile types
-	static final byte _ = 0;
-	static final byte G = 1;
-	static final byte O = 2;
-	static final byte T = 3; static final int SOLIDS = 3;
-	static final byte C = 4;
-	static final byte B = 5; // closed box
-	static final byte X = 6; // open box
-	static final byte E = 7; // bed
-	static final byte I = 8; static final int TRANSPARENTS = 8;
-	static final byte W = 9; 
-	static final byte D = 10;
+	static final byte _ = 0; // floor
+	static final byte G = 1; // grass
+	static final byte O = 2; // open door
+	static final byte R = 3; // rug
+	static final byte T = 4; static final int SOLIDS = 4; // table
+	static final byte C = 5; // chair
+	static final byte B = 6; // closed box
+	static final byte X = 7; // open box
+	static final byte E = 8; // bed
+	static final byte F = 9; // flower pot
+	static final byte I = 10; static final int TRANSPARENTS = 10; // window
+	static final byte W = 11; // wall
+	static final byte D = 12; // closed door
 	
 	// b stats
 	static final double B_RUN_SPEED = 0.09;
@@ -98,11 +100,13 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 		0, // _
 		0, // G
 		20,// O
+		0, // R
 		12,// T
 		4, // C
 		16,// B
 		16,// X
 		32,// E
+		8, // F
 		28,// I
 		40,// W
 		18,// D
@@ -174,18 +178,18 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				{G, W, _, _, _, _, O, _, W, _, _, _, W, G, W, B, _, W, G}, // 4
 				{G, W, W, D, W, W, W, _, W, _, _, _, I, G, W, _, _, W, G}, // 5
 				{G, W, _, _, _, _, W, _, O, _, E, _, W, G, W, O, W, W, G}, // 6
-				{G, I, _, C, _, _, W, _, W, _, T, _, I, G, G, G, G, G, G}, // 7
+				{G, I, _, C, _, _, W, _, W, _, T, _, I, G, G, G, G, F, G}, // 7
 				{G, W, _, T, _, B, W, _, W, _, _, _, W, G, G, G, G, G, G}, // 8
-				{G, W, _, C, _, _, O, _, W, W, D, W, W, G, G, G, G, G, G}, // 9
+				{G, W, _, C, R, _, O, _, W, W, D, W, W, G, G, G, G, G, G}, // 9
 				{G, I, _, _, _, _, W, _, O, _, _, W, W, W, I, W, G, G, G}, // 10
-				{G, W, _, B, _, _, W, _, W, T, _, D, _, _, _, W, G, G, G}, // 11
+				{G, W, _, B, _, _, W, R, W, T, _, D, _, _, _, W, F, G, G}, // 11
 				{G, W, W, W, I, W, W, O, W, _, _, W, _, B, _, O, G, G, G}, // 12
 				{G, G, G, G, G, G, G, G, W, I, W, W, W, W, W, W, G, G, G}, // 13
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 14
 			};*/
 			byte[][] t_hp = new byte[T_H][T_W];
 			
-			String map = "11111111111111111111989899999991111111190000200059119999112030599999991900911900002090009195091199a9990900081900911900009020709192991180400909030811111119030590900091111111904002099a99111111180000902009998911119050090930a0009111199989929009050211111111111989999991111111111111111111111";
+			String map = "11111111111111111111bababbbbbbb11111111b000020006b11bbbb1120406bbbbbbb1b00b11b000020b000b1b60b11bbcbbb0b000a1b00b11b0000b02080b1b2bb11a0500b0b040a1111911b0406b0b000b1111111b053020bbcbb1111111a0000b0200bbbab1111b0600b3b40c000b9111bbbabb2b00b060211111111111babbbbbb1111111111111111111111";
 
 			// Setup
 			for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
@@ -232,10 +236,11 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 									if (b_push > 16) {
 										int ny = ((int) b_y) + Y_DIRS[i];
 										int nx = ((int) b_x) + X_DIRS[i];
-										if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] == _ && !(ny == (int) v_y && nx == (int) v_x)) {
+										if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] <= G && !(ny == (int) v_y && nx == (int) v_x)) {
+											int t = t_type[ny][nx];
 											t_type[ny][nx] = t_type[(int) b_y][(int) b_x];
 											t_hp[ny][nx] = t_hp[(int) b_y][(int) b_x];
-											t_type[(int) b_y][(int) b_x] = _;
+											t_type[(int) b_y][(int) b_x] = t;
 											t_hp[(int) b_y][(int) b_x] = 0;
 											b_push = 0;
 										}
@@ -520,12 +525,14 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				}
 				click = false;
 				if (!dawn) { g.setClip(p); }
-				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-					if (t_type[y][x] == G) {
+				g.setColor(new Color(37, 59, 29));
+				g.fillRect(0, 0, 800, 600);
+				/*for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
+					if (t_type[y][x] == G || t_type[y][x] == F) {
 						g.setColor(new Color(37, 59, 29));
 						g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					}
-				} }
+				} }*/
 				g.setColor(new Color(44, 70, 34));
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 					if (t_type[y][x] == I) {
@@ -542,7 +549,9 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						case B:
 						case X:
 						case E:
+						case R:
 						case _: c = new Color(59, 39, 29); break;
+						case F: break;
 						case G: continue lp;
 						case I:
 						case W: c = new Color(101, 81, 72); break;
@@ -550,8 +559,27 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					g.setColor(c);
 					int yTile = y * TILE_SIZE;
 					int xTile = x * TILE_SIZE;
-					g.fillRect(xTile, yTile, TILE_SIZE, TILE_SIZE);
+					if (t_type[y][x] != F) { g.fillRect(xTile, yTile, TILE_SIZE, TILE_SIZE); }
 					switch (t_type[y][x]) {
+						case F:
+							g.setColor(new Color(175, 85, 58));
+							g.fillPolygon(new int[] {xTile + 15, xTile + 25, xTile + 23, xTile + 17}, new int[] {yTile + 17, yTile + 17, yTile + 31, yTile + 31}, 4);
+							//g.fillRect(xTile + 15, yTile + 15, 10, 16);
+							g.setColor(Color.RED);
+							g.fillOval(xTile + 14, yTile + 13, 5, 5);
+							g.fillOval(xTile + 22, yTile + 14, 6, 6);
+							g.fillOval(xTile + 18, yTile + 12, 5, 5);
+							//g.fillOval(xTile + 17, yTile + 7, 5, 5);
+							g.fillOval(xTile + 21, yTile + 9, 5, 5);
+							break;
+						case R:
+							g.setColor(new Color(100, 15, 10));
+							g.fillRoundRect(xTile + 2, yTile + 2, 36, 36, 8, 8);
+							g.setColor(new Color(20, 25, 150));
+							g.fillRect(xTile + 8, yTile + 8, 24, 24);
+							g.setColor(new Color(150, 150, 120));
+							g.fillPolygon(new int[] {xTile + 20, xTile + 36, xTile + 20, xTile + 4}, new int[] {yTile + 4, yTile + 20, yTile + 36, yTile + 20}, 4);
+							break;
 						case E:
 							g.setColor(Color.WHITE);
 							g.fillRect(xTile + 2, yTile + 18, 36, 6);
