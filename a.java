@@ -79,6 +79,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	static final int B_COOLDOWN = 20;
 	static final int GUN_DMG = 12;
 	static final int GUN_V_DMG = 500;
+	static final int MAX_FATIGUE = 900;
+	static final int WINDED_FATIGUE = 600;
 	
 	// inventory
 	static final int KEY = 0;
@@ -214,7 +216,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						}
 						msg = "";
 						// b movement
-						double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
+						double sp = b_fatigue > WINDED_FATIGUE ? B_WALK_SPEED : B_RUN_SPEED;
 						boolean mv = false;
 						for (int i = 0; i < 4; i++) {
 							if (key[DIR_KEYS[i]] || key[KeyEvent.VK_LEFT + i]) {
@@ -250,7 +252,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 							}
 						}
 
-						if (mv && b_fatigue <= 600) {
+						if (mv && b_fatigue <= MAX_FATIGUE) {
 							b_fatigue++;
 							b_exhaustion++;
 						}
@@ -336,7 +338,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						int dir = -1;
 						int least = v_map[((int) v_y)][((int) v_x)];
 						//sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
-						sp = V_SPEED - v_dmg * v_dmg * 0.00000025;
+						sp = V_SPEED - v_dmg * v_dmg * 0.00000020;
 						for (int i = 0; i < 8; i++) {
 							int ny = ((int) v_y) + Y_DIRS[i];
 							int nx = ((int) v_x) + X_DIRS[i];
@@ -359,7 +361,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						}
 						double dy = 0;
 						double dx = 0;
-						double dist = (b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x);//);
+						double dist = (b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x);
 						if (dir == -1) {
 							if (dist > P_R * P_R) {
 								dy = (b_y - v_y) / dist * sp;
@@ -411,7 +413,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								particles[i * 5 + 3] = r.nextDouble() * 2 - 1;
 								particles[i * 5 + 4] = r.nextDouble() * 3 - 1;
 							}
-							if (b_fatigue >= 600) {
+							if (b_fatigue >= MAX_FATIGUE) {
 								game_over = true;
 								msg2 = "GAME OVER";
 								msgWait = 100;
@@ -546,7 +548,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						case W: c = new Color(101, 81, 72); break;
 					}
 					g.setColor(c);
-					int yTile = x * TILE_SIZE;
+					int yTile = y * TILE_SIZE;
 					int xTile = x * TILE_SIZE;
 					g.fillRect(xTile, yTile, TILE_SIZE, TILE_SIZE);
 					switch (t_type[y][x]) {
@@ -643,9 +645,9 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				//g.setFont(new Font("Verdana", Font.PLAIN, 20));
 				g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 				g.setColor(Color.ORANGE);
-				g.fillRect(760, 450, 40, 1);
-				if (b_fatigue > 400) {
-					g.fillRect(760, 600 - b_fatigue / 4, 40, (b_fatigue - 400) / 4);
+				g.fillRect(760, 375, 40, 1);
+				if (b_fatigue > WINDED_FATIGUE) {
+					g.fillRect(760, 600 - b_fatigue / 4, 40, (b_fatigue - WINDED_FATIGUE) / 4);
 				}
 				
 				// inventory
