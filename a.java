@@ -160,30 +160,14 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			}}
 			
 			// Place players
-			while (true) {
-				b_y = 3.5 + r.nextInt(9);
-				b_x = 3.5 + r.nextInt(13);
-				if (t_type[(int) b_y][(int) b_x] >= SOLIDS) {
-					continue;
-				}
-				v_y = b_y + (r.nextBoolean() ? r.nextInt(2) + 3 : - r.nextInt(2) - 3);
-				v_x = b_x - 3 + r.nextInt(6);
-				if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
-					continue;
-				}
-				//while (true) {
-					/*v_y = r.nextInt(15);
-					v_x = r.nextInt(19);
-					double dist = (b_y - v_y) * (b_y - v_y) + (b_x - v_x) * (b_x - v_x);
-					if (t_type[(int) v_y][(int) v_x] >= SOLIDS || dist > 16 || dist < 4) {
-						continue;
-					}*/
-					//break;
-				//}
-				v_b_y = b_y;
-				v_b_x = b_x;
-				break;
-			}
+			int off = r.nextInt(10) + 1;
+			b_y = Y_VANTAGES[off];
+			b_x = X_VANTAGES[off];
+			v_b_y = b_y;
+			v_b_x = b_x;
+			off += r.nextBoolean() ? -1 : 1;
+			v_y = Y_VANTAGES[off];
+			v_x = X_VANTAGES[off];
 			
 			while (true) {
 				if (!playing) {
