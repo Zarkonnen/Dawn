@@ -55,7 +55,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	
 	// v stats
 	static final double V_SPEED = 0.05;
-	static final double V_HURT_SPEED = 0.03;	
+	//static final double V_HURT_SPEED = 0.03;	
 	static final int V_COOLDOWN = 30;
 	static final int[] Y_VANTAGES = {0, 4, 2, 4, 5, 9, 9 , 12, 7 , 5 , 0 , 14}; // 12 vantages
 	static final int[] X_VANTAGES = {0, 3, 7, 7, 9, 5, 10, 14, 12, 15, 18, 6 };
@@ -107,6 +107,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			double b_x = 0;
 			double b_y = 0;
 			boolean[] inventory = new boolean[2];
+			inventory[GUN] = true;
 			int bullets = 6;
 
 			// v stats
@@ -177,7 +178,9 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						tick++;
 						b_cooldown--;
 						v_cooldown--;
-						v_dmg--;
+						if (v_dmg > 0) {
+							v_dmg--;
+						}
 						msg = "";
 						// b movement
 						double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
@@ -301,7 +304,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						// V movement
 						int dir = -1;
 						int least = v_map[((int) v_y)][((int) v_x)];
-						sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
+						//sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
+						sp = V_SPEED - v_dmg * v_dmg * 0.00000025;
 						for (int i = 0; i < 8; i++) {
 							int ny = ((int) v_y) + Y_DIRS[i];
 							int nx = ((int) v_x) + X_DIRS[i];
