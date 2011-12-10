@@ -37,9 +37,10 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	static final byte C = 4;
 	static final byte B = 5; // closed box
 	static final byte X = 6; // open box
-	static final byte I = 7; static final int TRANSPARENTS = 7;
-	static final byte W = 8; 
-	static final byte D = 9;
+	static final byte E = 7; // bed
+	static final byte I = 8; static final int TRANSPARENTS = 8;
+	static final byte W = 9; 
+	static final byte D = 10;
 	
 	// b stats
 	static final double B_RUN_SPEED = 0.09;
@@ -55,10 +56,9 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	
 	// v stats
 	static final double V_SPEED = 0.05;
-	//static final double V_HURT_SPEED = 0.03;	
 	static final int V_COOLDOWN = 30;
-	static final int[] Y_VANTAGES = {0, 4, 2, 4, 5, 9, 9 , 12, 7 , 5 , 0 , 14}; // 12 vantages
-	static final int[] X_VANTAGES = {0, 3, 7, 7, 9, 5, 10, 14, 12, 15, 18, 6 };
+	static final int[] Y_VANTAGES = {0, 4, 2, 4, 5, 9, 10 ,12, 7 , 5 , 0 , 14}; // 12 vantages
+	static final int[] X_VANTAGES = {0, 3, 7, 7, 9, 5, 10, 14, 13, 15, 18, 6 };
 	
 	// map
 	static byte[] T_TO_HP = {
@@ -69,6 +69,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 		4, // C
 		16,// B
 		16,// X
+		32,// E
 		28,// I
 		40,// W
 		18,// D
@@ -107,7 +108,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			double b_x = 0;
 			double b_y = 0;
 			boolean[] inventory = new boolean[2];
-			inventory[GUN] = true;
 			int bullets = 6;
 
 			// v stats
@@ -130,38 +130,38 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			boolean dawn = false;
 
 			// map
-			// y 0, 4, 2, 4, 5, 9, 9 , 12, 7 , 5 , 0 , 14
-			// x 0, 3, 7, 7, 9, 5, 10, 14, 12, 15, 18, 6
+			// y 0, 4, 2, 4, 5, 9, 10, 12, 7 , 5 , 0 , 14
+			// x 0, 3, 7, 7, 9, 5, 10, 14, 13, 15, 18, 6
 			int[][] t_type = new int[T_H][T_W]; /*{
 			//   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 0
 				{G, W, I, W, I, W, W, W, W, W, W, W, G, G, G, G, G, G, G}, // 1
 				{G, W, _, _, _, _, O, _, _, _, B, W, G, G, W, W, W, W, G}, // 2
-				{G, O, _, T, _, B, W, W, W, W, W, W, G, G, W, _, _, W, G}, // 3
-				{G, W, _, _, _, _, O, _, W, _, _, W, G, G, W, B, _, W, G}, // 4
-				{G, W, W, D, W, W, W, _, O, _, C, I, G, G, W, _, _, W, G}, // 5
-				{G, W, _, _, _, _, W, _, W, _, _, W, G, G, W, O, W, W, G}, // 6
-				{G, I, _, C, _, _, W, _, W, W, D, W, G, G, G, G, G, G, G}, // 7
-				{G, W, _, T, _, B, W, _, W, _, _, W, G, G, G, G, G, G, G}, // 8
-				{G, W, _, C, _, _, O, _, W, T, _, I, G, G, G, G, G, G, G}, // 9
+				{G, O, _, T, _, B, W, W, W, W, W, W, W, G, W, _, _, W, G}, // 3
+				{G, W, _, _, _, _, O, _, W, _, _, _, W, G, W, B, _, W, G}, // 4
+				{G, W, W, D, W, W, W, _, W, _, _, _, I, G, W, _, _, W, G}, // 5
+				{G, W, _, _, _, _, W, _, O, _, E, _, W, G, W, O, W, W, G}, // 6
+				{G, I, _, C, _, _, W, _, W, _, T, _, I, G, G, G, G, G, G}, // 7
+				{G, W, _, T, _, B, W, _, W, _, _, _, W, G, G, G, G, G, G}, // 8
+				{G, W, _, C, _, _, O, _, W, W, D, W, W, G, G, G, G, G, G}, // 9
 				{G, I, _, _, _, _, W, _, O, _, _, W, W, W, I, W, G, G, G}, // 10
-				{G, W, _, B, _, _, W, _, W, _, _, D, _, _, _, W, G, G, G}, // 11
-				{G, W, W, W, I, W, W, O, W, W, I, W, _, B, _, O, G, G, G}, // 12
-				{G, G, G, G, G, G, G, G, G, G, G, W, W, W, W, W, G, G, G}, // 13
+				{G, W, _, B, _, _, W, _, W, T, _, D, _, _, _, W, G, G, G}, // 11
+				{G, W, W, W, I, W, W, O, W, _, _, W, _, B, _, O, G, G, G}, // 12
+				{G, G, G, G, G, G, G, G, W, I, W, W, W, W, W, W, G, G, G}, // 13
 				{G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G, G}, // 14
 			};*/
 			byte[][] t_hp = new byte[T_H][T_W];
 			
-			String map = "111111111111111111118787888888811111111800002000581188881120305888888118008118000020800811850811889888020471180081180000808008118288117040080889811111111803058080081111111180400208307111111117000080200888781111805008080090008111188878828878050211111111111111888881111111111111111111111";
+			String map = "11111111111111111111989899999991111111190000200059119999112030599999991900911900002090009195091199a9990900081900911900009020709192991180400909030811111119030590900091111111904002099a99111111180000902009998911119050090930a0009111199989929009050211111111111989999991111111111111111111111";
 
 			// Setup
 			for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-				t_type[y][x] = Integer.parseInt(map.substring(y * T_W + x, y * T_W + x + 1));
+				t_type[y][x] = Integer.parseInt(map.substring(y * T_W + x, y * T_W + x + 1), 16);
 				t_hp[y][x] = T_TO_HP[t_type[y][x]];
 			}}
 			
 			// Place players
-			int off = r.nextInt(10) + 1;
+			int off = r.nextInt(8) + 1;
 			b_y = Y_VANTAGES[off] + 0.5;
 			b_x = X_VANTAGES[off] + 0.5;
 			v_b_y = b_y;
@@ -508,6 +508,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						case C:
 						case B:
 						case X:
+						case E:
 						case _: c = new Color(59, 39, 29); break;
 						case G: continue lp;
 						case I:
@@ -516,6 +517,13 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					g.setColor(c);
 					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 					switch (t_type[y][x]) {
+						case E:
+							g.setColor(Color.WHITE);
+							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 18, 36, 6);
+							g.setColor(new Color(142, 130, 123));
+							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 10, 2, 20);
+							g.fillRect(x * TILE_SIZE + 36, y * TILE_SIZE + 16, 2, 14);
+							break;
 						case T:
 							g.setColor(new Color(142, 130, 123));
 							g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 10, 30, 2);
