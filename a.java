@@ -546,54 +546,56 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						case W: c = new Color(101, 81, 72); break;
 					}
 					g.setColor(c);
-					g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					int yTile = x * TILE_SIZE;
+					int xTile = x * TILE_SIZE;
+					g.fillRect(xTile, yTile, TILE_SIZE, TILE_SIZE);
 					switch (t_type[y][x]) {
 						case E:
 							g.setColor(Color.WHITE);
-							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 18, 36, 6);
+							g.fillRect(xTile + 2, yTile + 18, 36, 6);
 							g.setColor(new Color(142, 130, 123));
-							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 10, 2, 20);
-							g.fillRect(x * TILE_SIZE + 36, y * TILE_SIZE + 16, 2, 14);
+							g.fillRect(xTile + 2, yTile + 10, 2, 20);
+							g.fillRect(xTile + 36, yTile + 16, 2, 14);
 							break;
 						case T:
 							g.setColor(new Color(142, 130, 123));
-							g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 10, 30, 2);
-							g.fillRect(x * TILE_SIZE + 8, y * TILE_SIZE + 10, 2, 20);
-							g.fillRect(x * TILE_SIZE + 30, y * TILE_SIZE + 10, 2, 20);
+							g.fillRect(xTile + 5, yTile + 10, 30, 2);
+							g.fillRect(xTile + 8, yTile + 10, 2, 20);
+							g.fillRect(xTile + 30, yTile + 10, 2, 20);
 							break;
 						case C:
 							g.setColor(new Color(142, 130, 123));
-							g.fillRect(x * TILE_SIZE + 15, y * TILE_SIZE + 17, 10, 2);
-							g.fillRect(x * TILE_SIZE + 15, y * TILE_SIZE + 7, 2, 20);
-							g.fillRect(x * TILE_SIZE + 25, y * TILE_SIZE + 17, 2, 10);
+							g.fillRect(xTile + 15, yTile + 17, 10, 2);
+							g.fillRect(xTile + 15, yTile + 7, 2, 20);
+							g.fillRect(xTile + 25, yTile + 17, 2, 10);
 							break;
 						case D:
 							g.setColor(new Color(194, 177, 168));
-							g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+							g.fillRect(xTile, yTile, TILE_SIZE, TILE_SIZE);
 						case O:
 							g.setColor(new Color(87, 63, 51));
-							g.fillRect(x * TILE_SIZE, y * TILE_SIZE, 5, TILE_SIZE);
-							g.fillRect(x * TILE_SIZE + 35, y * TILE_SIZE, 5, TILE_SIZE);
+							g.fillRect(xTile, yTile, 5, TILE_SIZE);
+							g.fillRect(xTile + 35, yTile, 5, TILE_SIZE);
 							break;
 						case I:
 							g.setColor(new Color(133, 133, 176));
-							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 16, 16);
-							g.fillRect(x * TILE_SIZE + 22, y * TILE_SIZE + 2, 16, 16);
-							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 22, 16, 16);
-							g.fillRect(x * TILE_SIZE + 22, y * TILE_SIZE + 22, 16, 16);
+							g.fillRect(xTile + 2, yTile + 2, 16, 16);
+							g.fillRect(xTile + 22, yTile + 2, 16, 16);
+							g.fillRect(xTile + 2, yTile + 22, 16, 16);
+							g.fillRect(xTile + 22, yTile + 22, 16, 16);
 							break;
 						case B:
 						case X:
 							g.setColor(new Color(115, 63, 45));
-							g.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 6, 36, 28);
+							g.fillRect(xTile + 2, yTile + 6, 36, 28);
 							g.setColor(new Color(57, 32, 22));
-							g.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 8, 32, 10);
-							g.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 20, 32, 10);
+							g.fillRect(xTile + 4, yTile + 8, 32, 10);
+							g.fillRect(xTile + 4, yTile + 20, 32, 10);
 					}
 					if (t_type[y][x] == B) {
 						g.setColor(new Color(142, 130, 123));
-						g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 9, 30, 8);
-						g.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 21, 30, 8);
+						g.fillRect(xTile + 5, yTile + 9, 30, 8);
+						g.fillRect(xTile + 5, yTile + 21, 30, 8);
 					}
 				}}
 				// players
