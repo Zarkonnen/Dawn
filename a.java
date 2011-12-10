@@ -161,8 +161,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			
 			// Place players
 			int off = r.nextInt(10) + 1;
-			b_y = Y_VANTAGES[off];
-			b_x = X_VANTAGES[off];
+			b_y = Y_VANTAGES[off] + 0.5;
+			b_x = X_VANTAGES[off] + 0.5;
 			v_b_y = b_y;
 			v_b_x = b_x;
 			off += r.nextBoolean() ? -1 : 1;
@@ -183,7 +183,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						double sp = b_fatigue > 400 ? B_WALK_SPEED : B_RUN_SPEED;
 						boolean mv = false;
 						for (int i = 0; i < 4; i++) {
-							if (key[DIR_KEYS[i]]) {
+							if (key[DIR_KEYS[i]] || key[KeyEvent.VK_LEFT + i]) {
 								b_y += Y_DIRS[i] * sp;
 								b_x += X_DIRS[i] * sp;
 								// Borders
