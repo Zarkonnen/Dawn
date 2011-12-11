@@ -233,7 +233,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								b_x = b_x > (T_W - P_R) ? (T_W - P_R) : b_x;
 								// Solid things
 								if (t_type[(int) b_y][(int) b_x] >= SOLIDS && t_type[(int) b_y][(int) b_x] < TRANSPARENTS) {
-									if (b_push > 16) {
+									if (b_push > 12) {
 										int ny = ((int) b_y) + Y_DIRS[i];
 										int nx = ((int) b_x) + X_DIRS[i];
 										if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] <= G && !(ny == (int) v_y && nx == (int) v_x)) {
@@ -274,7 +274,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								case B:
 									msg = "Hold down E to search drawers.";
 									if (key[KeyEvent.VK_E]) {
-										if (b_push >= 80) {
+										if (b_push >= 60) {
 											b_push = 0;
 											t_type[ny][nx] = X;
 											int found = r.nextInt(2);
