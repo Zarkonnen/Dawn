@@ -2,6 +2,8 @@ import java.awt.Canvas;
 import java.awt.Color;
 //import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.event.KeyEvent;
@@ -12,9 +14,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 import java.util.LinkedList;
 import java.util.Random;
-import javax.swing.JApplet;
+import javax.swing.JFrame;
 
-public class a extends JApplet implements Runnable, KeyListener, MouseListener, MouseMotionListener {
+public class a extends JFrame implements Runnable, MouseListener, KeyListener, MouseMotionListener {
 	@Override
 	public void keyTyped(KeyEvent e) {}
 	@Override
@@ -113,17 +115,40 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 		18,// D
 	};
 	
-	@Override
-	public void init() {
+	public static void main(String[] args) {
+		new a();
+	}
+
+	public a() {
 		setIgnoreRepaint(true);
+		setUndecorated(true);
 		Canvas canvas = new Canvas();
 		add(canvas);
-		canvas.setBounds(0, 0, 800, 600);
+		canvas.setSize(800, 600);
+		GraphicsDevice gd =
+				GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		setLayout(null);
+		setBackground(Color.BLACK);
+		canvas.setBounds(
+				gd.getDefaultConfiguration().getBounds().width / 2 - 400,
+				gd.getDefaultConfiguration().getBounds().height / 2 - 300,
+				800,
+				600
+				);
+		setSize(gd.getDefaultConfiguration().getBounds().width,
+				gd.getDefaultConfiguration().getBounds().height);
+		setVisible(true);
 		canvas.createBufferStrategy(2);
 		strategy = canvas.getBufferStrategy();
-		canvas.addKeyListener(this);
 		canvas.addMouseListener(this);
+		canvas.addKeyListener(this);
 		canvas.addMouseMotionListener(this);
+		addKeyListener(this);
+			canvas.setSize(gd.getDefaultConfiguration().getBounds().width,
+					gd.getDefaultConfiguration().getBounds().height);
+			setSize(gd.getDefaultConfiguration().getBounds().width,
+					gd.getDefaultConfiguration().getBounds().height);
+			gd.setFullScreenWindow(this);
 		new Thread(this).start();
 	}
 
