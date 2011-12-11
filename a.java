@@ -87,7 +87,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 	// inventory
 	static final int KEY = 0;
 	static final int GUN = 1;
-	static final String[] ITEM_NAMES = { "key", "gun" };
+	static final int LEATHER_JACKET = 2;
+	static final String[] ITEM_NAMES = { "key", "gun", "leather jacket" };
 	
 	// v stats
 	static final double V_SPEED = 0.05;
@@ -144,8 +145,9 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			int b_push = 0;
 			double b_x = 0;
 			double b_y = 0;
-			boolean[] inventory = new boolean[2];
+			boolean[] inventory = new boolean[3];// inventory[LEATHER_JACKET] = true;
 			int bullets = 6;
+			int jacket_hp = 5;
 
 			// v stats
 			int v_cooldown = 0;
@@ -277,7 +279,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 										if (b_push >= 60) {
 											b_push = 0;
 											t_type[ny][nx] = X;
-											int found = r.nextInt(2);
+											int found = r.nextInt(3);
 											if (r.nextInt(lvl + 4) > 3 || inventory[found]) {
 												msg2 = "You found nothing.";
 											} else {
@@ -409,9 +411,15 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 
 						if (dist < P_R * 2 && v_cooldown <= 0) {
 							v_cooldown = 20;
-							b_fatigue += v_dmg > 0 ? 50 : 100;
-							b_exhaustion += v_dmg > 0 ? 50 : 100;
-							for (int i = 80; i < 120; i++) {
+							off = 80;
+							if (inventory[LEATHER_JACKET] && jacket_hp > 0) {
+								jacket_hp--;
+								off = 40;
+							} else {
+								b_fatigue += v_dmg > 0 ? 50 : 100;
+								b_exhaustion += v_dmg > 0 ? 50 : 100;
+							}
+							for (int i = off; i < off + 40; i++) {
 								particles[i * 5] = r.nextDouble() * 4;
 								particles[i * 5 + 1] = b_x * TILE_SIZE + 1;
 								particles[i * 5 + 2] = b_y * TILE_SIZE - 5;
@@ -636,8 +644,8 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					g.setColor(Color.WHITE);
 					g.fillOval((int) (v_x * TILE_SIZE) - 4, (int) (v_y * TILE_SIZE) - 12, 9, 9);
 					g.fillOval((int) (b_x * TILE_SIZE) - 3, (int) (b_y * TILE_SIZE) - 12, 7, 6);
-					g.fillRect((int) (b_x * TILE_SIZE) - 3, (int) (b_y * TILE_SIZE) - 4, 1, 6);
-					g.fillRect((int) (b_x * TILE_SIZE) + 4, (int) (b_y * TILE_SIZE) - 4, 1, 6);
+					g.fillRect((int) (b_x * TILE_SIZE) - 3, (int) (b_y * TILE_SIZE) - 4, 1, 8);
+					g.fillRect((int) (b_x * TILE_SIZE) + 4, (int) (b_y * TILE_SIZE) - 4, 1, 8);
 					// body
 					g.setColor(Color.RED);
 					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 18);
@@ -646,6 +654,12 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					g.fillRect((int) (b_x * TILE_SIZE) + 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);*/
 					if (v_dmg > 0) {
 						g.fillOval((int) (v_x * TILE_SIZE), (int) (v_y * TILE_SIZE), 3, 7);
+					}
+					if (inventory[LEATHER_JACKET] && jacket_hp > 0) {
+						g.setColor(Color.BLACK);//new Color(145, 92, 54));
+						g.fillRect((int) (b_x * TILE_SIZE) - 4, (int) (b_y * TILE_SIZE) - 5, 10, 8);
+						/*g.fillRect((int) (b_x * TILE_SIZE) - 1, (int) (b_y * TILE_SIZE) - 6, 4, 2);
+						g.fillRect((int) (b_x * TILE_SIZE) - 4, (int) (b_y * TILE_SIZE) - 4, 10, 7);*/
 					}
 					//g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 					//if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
@@ -685,6 +699,13 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					g.fillRect(769, 19, 25, 2);
 					g.fillRect(786, 19, 2, 6);
 					g.fillRect(790, 19, 2, 8);
+				}
+				// leather jacket
+				if (inventory[LEATHER_JACKET] && jacket_hp > 0) {
+					g.drawRect(775, 85, 10, 4);
+					g.drawRect(770, 89, 20, 24);
+					g.drawRect(765, 92, 3, 18);
+					g.drawRect(792, 92, 3, 18);
 				}
 				// gun
 				if (inventory[GUN]) {
