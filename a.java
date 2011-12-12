@@ -192,6 +192,11 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 			// game
 			boolean game_over = false;
 			boolean dawn = false;
+			long nextFrameStart = 0;
+			
+			// breathing
+			int ticksUntilBreath = 0;
+			boolean in = true;
 
 			// map
 			// y 0, 4, 2, 4, 5, 9, 10, 12, 7 , 5 , 0 , 14
@@ -235,6 +240,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 			v_x = X_VANTAGES[off];
 			
 			while (true) {
+				nextFrameStart = System.nanoTime() + 40000000l;
 				if (!playing) {
 					if (key[KeyEvent.VK_SPACE]) { playing = true; }
 				} else {
@@ -246,6 +252,14 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 							v_dmg--;
 						}
 						msg = "";
+						
+						// breathing
+						if (ticksUntilBreath-- == 0) {
+							sound.Sound.play(in ? "in" : "out", -1.2f + (b_fatigue + b_exhaustion) * 0.00045f);
+							in = !in;
+							ticksUntilBreath = 12 + 25 * (MAX_FATIGUE - b_fatigue) / MAX_FATIGUE;
+						}
+						
 						// b movement
 						double sp = b_fatigue > WINDED_FATIGUE ? B_WALK_SPEED : B_RUN_SPEED;
 						boolean mv = false;
@@ -261,6 +275,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 								// Solid things
 								if (t_type[(int) b_y][(int) b_x] >= SOLIDS && t_type[(int) b_y][(int) b_x] < TRANSPARENTS) {
 									if (b_push > 12) {
+										sound.Sound.play("shift", 0.1f);
 										int ny = ((int) b_y) + Y_DIRS[i];
 										int nx = ((int) b_x) + X_DIRS[i];
 										if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] <= G && !(ny == (int) v_y && nx == (int) v_x)) {
@@ -308,11 +323,20 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 											if (r.nextInt(lvl + 4) > 3 || inventory[found]) {
 												msg2 = "You found nothing.";
 											} else {
+												if (found == LEATHER_JACKET) {
+													sound.Sound.play("jacketget", 0.0f);
+												}
+												if (found == KEY) {
+													sound.Sound.play("key", 0.0f);
+												}
 												msg2 = "You found a " + ITEM_NAMES[found] + "!";
 												inventory[found] = true;
 											}
 											msgWait = 100;
 										} else {
+											if (b_push == 0) {
+												sound.Sound.play("drawer", 0.2f);
+											}
 											msg = "Searching...";
 											b_push++;
 										}
@@ -324,6 +348,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
 											t_type[ny][nx] = D;
 											b_cooldown = B_COOLDOWN;
+											sound.Sound.play("doorclose", 0.0f);
 										}
 									}
 									break;
@@ -333,6 +358,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
 											t_type[ny][nx] = O;
 											b_cooldown = B_COOLDOWN;
+											sound.Sound.play("dooropen", 0.0f);
 										}
 									}
 									break;
@@ -417,6 +443,12 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 						// Walls
 						if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
 							if (v_cooldown <= 0) {
+								if (t_type[(int) v_y][(int) v_x] == W) {
+									sound.Sound.play("window", 0.3f);
+								} else {
+									sound.Sound.play("punch", 0.2f);
+								}
+								
 								t_hp[(int) v_y][(int) v_x] -= v_dmg > 0 ? 1 : 2;
 								for (int i = 20; i < 40; i++) {
 									particles[i * 5] = r.nextDouble() * 5;
@@ -437,6 +469,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 						if (dist < P_R * 2 && v_cooldown <= 0) {
 							v_cooldown = 20;
 							off = 80;
+							sound.Sound.play("punch", 0.4f);
 							if (inventory[LEATHER_JACKET] && jacket_hp > 0) {
 								jacket_hp--;
 								off = 40;
@@ -528,6 +561,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 								if (t_type[(int) y][(int) x] > SOLIDS || (int) y == (int) v_y && (int) x == (int) v_x) {
 									blocked = true;
 									if (bullets > 0 && click && b_cooldown <= 0) {
+										sound.Sound.play("gun", 1.0f);
 										b_cooldown = B_COOLDOWN;
 										int p_start = 40;
 										if (t_type[(int) y][(int) x] > SOLIDS) {
@@ -745,7 +779,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 				g.drawString(msg, 40, 280);
 				g.drawString(msg2, 40, 320);
 				strategy.show();
-				try { Thread.sleep(15); } catch (Exception e) {}
+				try { Thread.sleep((nextFrameStart - System.nanoTime()) / 1000000); } catch (Exception e) {}
 				if (--msgWait == 0) {
 					msg2 = "";
 					if (game_over) {
