@@ -402,7 +402,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 								}
 								v_cooldown = V_COOLDOWN;
 								if (t_hp[(int) v_y][(int) v_x] <= 0) {
-									t_type[(int) v_y][(int) v_x] = _;
+									t_type[(int) v_y][(int) v_x] = t_type[(int) v_y][(int) v_x] == F ? G : _;
 								}
 							}
 							v_y -= dy;
