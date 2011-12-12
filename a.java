@@ -353,7 +353,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 							int nx2 = (int) (v_x + X_DIRS[i] * sp);
 							if (nx < 0 || ny < 0 || nx >= T_W || ny >= T_H) { continue; }
 							// Prevent slipping through diagonal gaps.
-							if (t_type[ny2][nx2] < SOLIDS && t_type[ny2][(int) v_x] >= SOLIDS && t_type[(int) v_y][nx2] >= SOLIDS) {
+							if (t_type[ny][nx] < SOLIDS && t_type[ny][(int) v_x] >= SOLIDS && t_type[(int) v_y][nx] >= SOLIDS) {
 								continue;
 							}
 
