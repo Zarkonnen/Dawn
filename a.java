@@ -567,7 +567,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 										if (t_type[(int) y][(int) x] > SOLIDS) {
 											t_hp[(int) y][(int) x] -= GUN_DMG;
 											if (t_hp[(int) y][(int) x] <= 0) {
-												t_type[(int) y][(int) x] = _;
+												t_type[(int) y][(int) x] = t_type[(int) y][(int) x] == F ? G : _;
 											}
 										}
 										if ((int) y == (int) v_y && (int) x == (int) v_x) {
