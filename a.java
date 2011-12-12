@@ -443,10 +443,10 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 						// Walls
 						if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
 							if (v_cooldown <= 0) {
-								if (t_type[(int) v_y][(int) v_x] == W) {
-									sound.Sound.play("window", 0.3f);
+								if (t_type[(int) v_y][(int) v_x] == I) {
+									sound.Sound.play("window", 0.2f);
 								} else {
-									sound.Sound.play("punch", 0.2f);
+									sound.Sound.play("punch", 0.0f);
 								}
 								
 								t_hp[(int) v_y][(int) v_x] -= v_dmg > 0 ? 1 : 2;

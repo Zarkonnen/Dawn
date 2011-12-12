@@ -14,7 +14,7 @@ public class Sound {
 	// drawer: http://www.freesound.org/people/adcbicycle/sounds/14141/ and http://www.freesound.org/people/RHumphries/sounds/1012/
 	// key: http://www.freesound.org/people/klankbeeld/sounds/137063/
 	// jacketget: http://www.freesound.org/people/HerbertBoland/sounds/28301/
-	// punch: http://www.freesound.org/people/m_O_m/sounds/107772/ and http://www.freesound.org/people/Ekokubza123/sounds/104183/ and http://www.freesound.org/people/issalcake/sounds/115917/
+	// punch: http://www.freesound.org/people/sagetyrtle/sounds/40158/
 	// shift: http://www.freesound.org/people/MaxDemianAGL/sounds/120184/
 	static HashMap<String, Clip> cache = new HashMap<String, Clip>();
 	public static void play(String sound, float volume) {
