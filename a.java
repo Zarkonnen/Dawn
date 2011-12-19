@@ -145,7 +145,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 			int b_push = 0;
 			double b_x = 0;
 			double b_y = 0;
-			boolean[] inventory = new boolean[3];// inventory[LEATHER_JACKET] = true;
+			boolean[] inventory = new boolean[3];
 			int bullets = 6;
 			int jacket_hp = 5;
 
@@ -344,7 +344,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						// V movement
 						int dir = -1;
 						int least = v_map[((int) v_y)][((int) v_x)];
-						//sp = v_dmg > 0 ? V_HURT_SPEED : V_SPEED;
 						sp = V_SPEED - v_dmg * v_dmg * 0.00000020;
 						for (int i = 0; i < 8; i++) {
 							int ny = ((int) v_y) + Y_DIRS[i];
@@ -442,7 +441,7 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 							game_over = true;
 							msg2 = "VICTORY!";
 							dawn = true;
-							msgWait = 300;
+							msgWait = 150;
 							lvl *= 2;
 							for (int i = 0; i < 80; i++) {
 								particles[i * 5] = r.nextDouble() * 10;
@@ -535,12 +534,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				if (!dawn) { g.setClip(p); }
 				g.setColor(new Color(37, 59, 29));
 				g.fillRect(0, 0, 800, 600);
-				/*for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
-					if (t_type[y][x] == G || t_type[y][x] == F) {
-						g.setColor(new Color(37, 59, 29));
-						g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-					}
-				} }*/
 				g.setColor(new Color(44, 70, 34));
 				for (int y = 0; y < T_H; y++) { for (int x = 0; x < T_W; x++) {
 					if (t_type[y][x] == I) {
@@ -572,12 +565,10 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 						case F:
 							g.setColor(new Color(175, 85, 58));
 							g.fillPolygon(new int[] {xTile + 15, xTile + 25, xTile + 23, xTile + 17}, new int[] {yTile + 17, yTile + 17, yTile + 31, yTile + 31}, 4);
-							//g.fillRect(xTile + 15, yTile + 15, 10, 16);
 							g.setColor(Color.RED);
 							g.fillOval(xTile + 14, yTile + 13, 5, 5);
 							g.fillOval(xTile + 22, yTile + 14, 6, 6);
 							g.fillOval(xTile + 18, yTile + 12, 5, 5);
-							//g.fillOval(xTile + 17, yTile + 7, 5, 5);
 							g.fillOval(xTile + 21, yTile + 9, 5, 5);
 							break;
 						case R:
@@ -649,21 +640,13 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					// body
 					g.setColor(Color.RED);
 					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 18);
-					/*g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) - 3, 6, 8);
-					g.fillRect((int) (b_x * TILE_SIZE) - 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);
-					g.fillRect((int) (b_x * TILE_SIZE) + 2, (int) (b_y * TILE_SIZE) + 2, 2, 10);*/
 					if (v_dmg > 0) {
 						g.fillOval((int) (v_x * TILE_SIZE), (int) (v_y * TILE_SIZE), 3, 7);
 					}
 					if (inventory[LEATHER_JACKET] && jacket_hp > 0) {
 						g.setColor(Color.BLACK);//new Color(145, 92, 54));
 						g.fillRect((int) (b_x * TILE_SIZE) - 4, (int) (b_y * TILE_SIZE) - 5, 10, 8);
-						/*g.fillRect((int) (b_x * TILE_SIZE) - 1, (int) (b_y * TILE_SIZE) - 6, 4, 2);
-						g.fillRect((int) (b_x * TILE_SIZE) - 4, (int) (b_y * TILE_SIZE) - 4, 10, 7);*/
 					}
-					//g.fillOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-					//if (!(v_vs_b && b_fatigue % 19 == 0)) { g.setColor(Color.GREEN); }
-					//g.fillOval((int) ((b_x - P_R) * TILE_SIZE), (int) ((b_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
 				}
 				if (dawn) {
 					g.setColor(new Color(255, 255, 150, 70));
@@ -671,9 +654,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 				}
 				g.setClip(0, 0, 800, 600);
 				g.setColor(Color.YELLOW);
-				// qqDPS
-				//g.drawOval((int) ((v_x - P_R) * TILE_SIZE), (int) ((v_y - P_R) * TILE_SIZE), (int) (2 * P_R * TILE_SIZE), (int) (2 * P_R * TILE_SIZE));
-				// particles
 				for (int i = 0; i < 120; i++) {
 					if (i == 80) { g.setColor(Color.RED); }
 					if (particles[i * 5] > 0) {
@@ -684,7 +664,6 @@ public class a extends JApplet implements Runnable, KeyListener, MouseListener, 
 					}
 				}
 				g.setColor(Color.YELLOW);
-				//g.setFont(new Font("Verdana", Font.PLAIN, 20));
 				g.fillRect(760, 600 - b_fatigue / 4, 40, b_fatigue / 4);
 				g.setColor(Color.ORANGE);
 				g.fillRect(760, 375, 40, 1);
