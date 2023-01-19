@@ -1,4 +1,4 @@
-package sound;
+package com.zarkonnen.dawn.sound;
 
 import java.util.HashMap;
 import javax.sound.sampled.AudioInputStream;

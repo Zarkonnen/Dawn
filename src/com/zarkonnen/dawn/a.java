@@ -1,3 +1,6 @@
+package com.zarkonnen.dawn;
+
+import com.zarkonnen.dawn.sound.Sound;
 import java.awt.Canvas;
 import java.awt.Color;
 //import java.awt.Font;
@@ -120,8 +123,8 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 	}
 
 	public a() {
-		setIgnoreRepaint(true);
-		setUndecorated(true);
+		//setIgnoreRepaint(true);
+		//setUndecorated(true);
 		Canvas canvas = new Canvas();
 		add(canvas);
 		canvas.setSize(800, 600);
@@ -130,13 +133,14 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 		setLayout(null);
 		setBackground(Color.BLACK);
 		canvas.setBounds(
-				gd.getDefaultConfiguration().getBounds().width / 2 - 400,
-				gd.getDefaultConfiguration().getBounds().height / 2 - 300,
+				0,//gd.getDefaultConfiguration().getBounds().width / 2 - 400,
+				0,//gd.getDefaultConfiguration().getBounds().height / 2 - 300,
 				800,
 				600
 				);
-		setSize(gd.getDefaultConfiguration().getBounds().width,
-				gd.getDefaultConfiguration().getBounds().height);
+		/*setSize(gd.getDefaultConfiguration().getBounds().width,
+				gd.getDefaultConfiguration().getBounds().height);*/
+		setSize(800, 630);
 		setVisible(true);
 		canvas.createBufferStrategy(2);
 		strategy = canvas.getBufferStrategy();
@@ -144,11 +148,11 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 		canvas.addKeyListener(this);
 		canvas.addMouseMotionListener(this);
 		addKeyListener(this);
-			canvas.setSize(gd.getDefaultConfiguration().getBounds().width,
+		/*	canvas.setSize(gd.getDefaultConfiguration().getBounds().width,
 					gd.getDefaultConfiguration().getBounds().height);
 			setSize(gd.getDefaultConfiguration().getBounds().width,
 					gd.getDefaultConfiguration().getBounds().height);
-			gd.setFullScreenWindow(this);
+			gd.setFullScreenWindow(this);*/
 		new Thread(this).start();
 	}
 
@@ -255,7 +259,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 						
 						// breathing
 						if (ticksUntilBreath-- == 0) {
-							sound.Sound.play(in ? "in" : "out", -1.2f + (b_fatigue + b_exhaustion) * 0.00045f);
+							Sound.play(in ? "in" : "out", -1.2f + (b_fatigue + b_exhaustion) * 0.00045f);
 							in = !in;
 							ticksUntilBreath = 12 + 25 * (MAX_FATIGUE - b_fatigue) / MAX_FATIGUE;
 						}
@@ -275,7 +279,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 								// Solid things
 								if (t_type[(int) b_y][(int) b_x] >= SOLIDS && t_type[(int) b_y][(int) b_x] < TRANSPARENTS) {
 									if (b_push > 12) {
-										sound.Sound.play("shift", 0.1f);
+										Sound.play("shift", 0.1f);
 										int ny = ((int) b_y) + Y_DIRS[i];
 										int nx = ((int) b_x) + X_DIRS[i];
 										if (nx >= 0 && ny >= 0 && nx < T_W && ny < T_H && t_type[ny][nx] <= G && !(ny == (int) v_y && nx == (int) v_x)) {
@@ -324,10 +328,10 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 												msg2 = "You found nothing.";
 											} else {
 												if (found == LEATHER_JACKET) {
-													sound.Sound.play("jacketget", 0.0f);
+													Sound.play("jacketget", 0.0f);
 												}
 												if (found == KEY) {
-													sound.Sound.play("key", 0.0f);
+													Sound.play("key", 0.0f);
 												}
 												msg2 = "You found a " + ITEM_NAMES[found] + "!";
 												inventory[found] = true;
@@ -335,7 +339,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 											msgWait = 100;
 										} else {
 											if (b_push == 0) {
-												sound.Sound.play("drawer", 0.2f);
+												Sound.play("drawer", 0.2f);
 											}
 											msg = "Searching...";
 											b_push++;
@@ -348,7 +352,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
 											t_type[ny][nx] = D;
 											b_cooldown = B_COOLDOWN;
-											sound.Sound.play("doorclose", 0.0f);
+											Sound.play("doorclose", 0.0f);
 										}
 									}
 									break;
@@ -358,7 +362,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 										if (b_cooldown <= 0 && key[KeyEvent.VK_SPACE]) {
 											t_type[ny][nx] = O;
 											b_cooldown = B_COOLDOWN;
-											sound.Sound.play("dooropen", 0.0f);
+											Sound.play("dooropen", 0.0f);
 										}
 									}
 									break;
@@ -444,9 +448,9 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 						if (t_type[(int) v_y][(int) v_x] >= SOLIDS) {
 							if (v_cooldown <= 0) {
 								if (t_type[(int) v_y][(int) v_x] == I) {
-									sound.Sound.play("window", 0.2f);
+									Sound.play("window", 0.2f);
 								} else {
-									sound.Sound.play("punch", 0.0f);
+									Sound.play("punch", 0.0f);
 								}
 								
 								t_hp[(int) v_y][(int) v_x] -= v_dmg > 0 ? 1 : 2;
@@ -469,7 +473,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 						if (dist < P_R * 2 && v_cooldown <= 0) {
 							v_cooldown = 20;
 							off = 80;
-							sound.Sound.play("punch", 0.4f);
+							Sound.play("punch", 0.4f);
 							if (inventory[LEATHER_JACKET] && jacket_hp > 0) {
 								jacket_hp--;
 								off = 40;
@@ -561,7 +565,7 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 								if (t_type[(int) y][(int) x] > SOLIDS || (int) y == (int) v_y && (int) x == (int) v_x) {
 									blocked = true;
 									if (bullets > 0 && click && b_cooldown <= 0) {
-										sound.Sound.play("gun", 1.0f);
+										Sound.play("gun", 1.0f);
 										b_cooldown = B_COOLDOWN;
 										int p_start = 40;
 										if (t_type[(int) y][(int) x] > SOLIDS) {
