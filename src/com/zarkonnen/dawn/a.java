@@ -14,6 +14,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.util.LinkedList;
 import java.util.Random;
@@ -123,8 +125,8 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 	}
 
 	public a() {
-		//setIgnoreRepaint(true);
-		//setUndecorated(true);
+		setIgnoreRepaint(true);
+		setUndecorated(true);
 		Canvas canvas = new Canvas();
 		add(canvas);
 		canvas.setSize(800, 600);
@@ -132,15 +134,15 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 				GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		setLayout(null);
 		setBackground(Color.BLACK);
+		canvas.setSize(gd.getDefaultConfiguration().getBounds().width, gd.getDefaultConfiguration().getBounds().height);
 		canvas.setBounds(
-				0,//gd.getDefaultConfiguration().getBounds().width / 2 - 400,
-				0,//gd.getDefaultConfiguration().getBounds().height / 2 - 300,
-				800,
-				600
+				0,
+				0,
+				gd.getDefaultConfiguration().getBounds().width,
+				gd.getDefaultConfiguration().getBounds().height
 				);
-		/*setSize(gd.getDefaultConfiguration().getBounds().width,
-				gd.getDefaultConfiguration().getBounds().height);*/
-		setSize(800, 630);
+		setSize(gd.getDefaultConfiguration().getBounds().width,
+				gd.getDefaultConfiguration().getBounds().height);
 		setVisible(true);
 		canvas.createBufferStrategy(2);
 		strategy = canvas.getBufferStrategy();
@@ -521,8 +523,9 @@ public class a extends JFrame implements Runnable, MouseListener, KeyListener, M
 
 				// Graphics
 				Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
+				g.scale(1000.0 / 600, 1000.0 / 600);
 				g.setColor(new Color(0, 0, 30));
-				g.fillRect(0, 0, 800, 600);
+				g.fillRect(0, 0, 2000, 2000);
 				Polygon p = new Polygon();
 				v_seen = false;
 				for (double d = 0.001; d < Math.PI * 2; d += Math.PI / 2000) {

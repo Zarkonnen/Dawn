@@ -27,11 +27,15 @@ public class Sound {
 				cache.put(sound, clip);
 			}
 			Clip s = cache.get(sound);
+			s.stop();
 			s.setFramePosition(0);
 			try {
-				FloatControl gc = (FloatControl) s.getControl(FloatControl.Type.MASTER_GAIN);
-				gc.setValue(volume * 20);
-			} catch (Exception e) {}
+				FloatControl gc = (FloatControl) s.getControl(FloatControl.Type.VOLUME);
+				//System.out.println(volume);
+				gc.setValue(gc.getMaximum() * Math.max(0.4f, Math.min(1, volume / 8 + 0.4f)));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			s.start();
 		} catch (Exception e) {
 			e.printStackTrace();
